@@ -11,18 +11,23 @@ const Index = () => {
 
       <main className="container py-10 space-y-10">
         {/* Hero */}
-        <div className="space-y-3 max-w-2xl">
-          <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground uppercase tracking-widest">
-            <Bug className="h-3.5 w-3.5" />
-            Clase Insecta
+        <div className="flex flex-col-reverse md:flex-row items-start gap-8">
+          <div className="space-y-3 max-w-2xl flex-1">
+            <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground uppercase tracking-widest">
+              <Bug className="h-3.5 w-3.5" />
+              Clase Insecta
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Enciclopedia Entomológica
+            </h1>
+            <p className="text-muted-foreground leading-relaxed">
+              Explora la clase más diversa del reino animal. Navega por órdenes, familias y especies
+              con datos taxonómicos, ecológicos y de conservación actualizados.
+            </p>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Enciclopedia Entomológica
-          </h1>
-          <p className="text-muted-foreground leading-relaxed">
-            Explora la clase más diversa del reino animal. Navega por órdenes, familias y especies
-            con datos taxonómicos, ecológicos y de conservación actualizados.
-          </p>
+          <div className="w-full md:w-64 lg:w-80 flex-shrink-0 rounded-lg overflow-hidden border border-border">
+            <img src={heroImage} alt="Ilustración científica de insectos" width={1280} height={512} className="w-full h-auto" />
+          </div>
         </div>
 
         {/* Orders Grid */}
