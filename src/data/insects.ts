@@ -1,0 +1,330 @@
+import { TaxonomyOrder } from "@/types/taxonomy";
+
+export const taxonomyData: TaxonomyOrder[] = [
+  {
+    id: "coleoptera",
+    name: "Coleoptera",
+    commonName: "Escarabajos",
+    description: "El orden más diverso de insectos, con más de 400,000 especies descritas. Se caracterizan por sus élitros endurecidos que protegen las alas membranosas.",
+    speciesCount: 400000,
+    iconEmoji: "🪲",
+    families: [
+      {
+        id: "coccinellidae",
+        orderId: "coleoptera",
+        name: "Coccinellidae",
+        commonName: "Mariquitas",
+        description: "Familia de coleópteros conocidos por su forma convexa y coloración aposemática. Importantes agentes de control biológico.",
+        speciesCount: 6000,
+        species: [
+          {
+            id: "coccinella-septempunctata",
+            familyId: "coccinellidae",
+            orderId: "coleoptera",
+            scientificName: "Coccinella septempunctata",
+            commonName: "Mariquita de siete puntos",
+            author: "Linnaeus",
+            year: 1758,
+            description: "Especie paleártica ampliamente distribuida, reconocible por sus élitros rojos con siete puntos negros. Depredador eficiente de áfidos con alta tasa de consumo diario.",
+            developmentType: "Holometábolo",
+            conservationStatus: "LC",
+            habitat: ["Praderas", "Jardines", "Cultivos agrícolas", "Bosques templados"],
+            distribution: "Europa, Asia, Norte de África. Introducida en Norteamérica.",
+            size: { min: 5, max: 8, unit: "mm" },
+            lifecycle: {
+              stages: ["Huevo", "Larva (4 instares)", "Pupa", "Adulto"],
+              duration: "4-7 semanas",
+            },
+            diet: "Áfidos, cochinillas, ácaros",
+            characteristics: [
+              "Élitros rojos con 7 puntos negros",
+              "Pronoto negro con manchas blancas laterales",
+              "Secreción reflexiva de hemolinfa alcaloide",
+              "Agregación invernal en refugios protegidos",
+            ],
+          },
+        ],
+      },
+      {
+        id: "scarabaeidae",
+        orderId: "coleoptera",
+        name: "Scarabaeidae",
+        commonName: "Escarabajos peloteros",
+        description: "Familia diversa que incluye escarabajos coprófagos, fitófagos y saprófagos. Papel ecológico crucial en el reciclaje de nutrientes.",
+        speciesCount: 30000,
+        species: [
+          {
+            id: "scarabaeus-sacer",
+            familyId: "scarabaeidae",
+            orderId: "coleoptera",
+            scientificName: "Scarabaeus sacer",
+            commonName: "Escarabajo sagrado",
+            author: "Linnaeus",
+            year: 1758,
+            description: "Especie icónica venerada en el Antiguo Egipto. Escarabajo coprófago que forma bolas de estiércol para alimentación y reproducción.",
+            developmentType: "Holometábolo",
+            conservationStatus: "NT",
+            habitat: ["Pastizales", "Sabanas", "Zonas semiáridas"],
+            distribution: "Región Mediterránea, Norte de África, Asia Central.",
+            size: { min: 25, max: 37, unit: "mm" },
+            lifecycle: {
+              stages: ["Huevo", "Larva (3 instares)", "Pupa", "Adulto"],
+              duration: "8-12 semanas",
+            },
+            diet: "Estiércol de herbívoros",
+            characteristics: [
+              "Coloración negro mate",
+              "Clípeo con 6 dientes",
+              "Tibias anteriores dentadas para excavar",
+              "Navegación por polarización de luz lunar",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "lepidoptera",
+    name: "Lepidoptera",
+    commonName: "Mariposas y polillas",
+    description: "Orden caracterizado por alas cubiertas de escamas. Incluye aproximadamente 180,000 especies con metamorfosis completa.",
+    speciesCount: 180000,
+    iconEmoji: "🦋",
+    families: [
+      {
+        id: "nymphalidae",
+        orderId: "lepidoptera",
+        name: "Nymphalidae",
+        commonName: "Ninfálidos",
+        description: "La familia más grande de mariposas diurnas. Se distinguen por sus patas protorácicas reducidas, no funcionales para caminar.",
+        speciesCount: 6000,
+        species: [
+          {
+            id: "danaus-plexippus",
+            familyId: "nymphalidae",
+            orderId: "lepidoptera",
+            scientificName: "Danaus plexippus",
+            commonName: "Mariposa monarca",
+            author: "Linnaeus",
+            year: 1758,
+            description: "Famosa por su migración multigeneracional de hasta 4,500 km. Presenta aposematismo debido a la acumulación de glucósidos cardiotónicos de sus plantas hospederas (Asclepias spp.).",
+            developmentType: "Holometábolo",
+            conservationStatus: "EN",
+            habitat: ["Praderas", "Campos abiertos", "Bosques de oyamel"],
+            distribution: "América del Norte, introducida en Oceanía y Europa.",
+            size: { min: 86, max: 124, unit: "mm (envergadura)" },
+            lifecycle: {
+              stages: ["Huevo", "Oruga (5 instares)", "Crisálida", "Adulto"],
+              duration: "4-5 semanas (generación no migratoria)",
+            },
+            diet: "Larva: Asclepias spp. Adulto: néctar floral",
+            characteristics: [
+              "Alas naranja con venación negra",
+              "Bordes negros con puntos blancos",
+              "Migración multigeneracional",
+              "Toxicidad por cardenólidos",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "hymenoptera",
+    name: "Hymenoptera",
+    commonName: "Abejas, avispas y hormigas",
+    description: "Orden con más de 150,000 especies, muchas de las cuales exhiben comportamiento eusocial. Incluye los principales polinizadores y parasitoides.",
+    speciesCount: 150000,
+    iconEmoji: "🐝",
+    families: [
+      {
+        id: "apidae",
+        orderId: "hymenoptera",
+        name: "Apidae",
+        commonName: "Abejas",
+        description: "Familia que incluye abejas melíferas, abejorros y abejas solitarias. Polinizadores clave para ecosistemas y agricultura.",
+        speciesCount: 5700,
+        species: [
+          {
+            id: "apis-mellifera",
+            familyId: "apidae",
+            orderId: "hymenoptera",
+            scientificName: "Apis mellifera",
+            commonName: "Abeja melífera",
+            author: "Linnaeus",
+            year: 1758,
+            description: "Especie eusocial domesticada con sistema de castas (reina, obreras, zánganos). Comunicación mediante danza waggle para indicar fuentes de alimento.",
+            developmentType: "Holometábolo",
+            conservationStatus: "DD",
+            habitat: ["Bosques", "Praderas", "Zonas agrícolas", "Urbano"],
+            distribution: "Cosmopolita (originaria de África y Europa).",
+            size: { min: 12, max: 15, unit: "mm (obrera)" },
+            lifecycle: {
+              stages: ["Huevo", "Larva", "Pupa", "Adulto"],
+              duration: "21 días (obrera), 16 días (reina)",
+            },
+            diet: "Néctar y polen",
+            characteristics: [
+              "Cuerpo piloso con corbículas",
+              "Aguijón con púas (autotomía)",
+              "Danza waggle para comunicación",
+              "Producción de miel y cera",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "orthoptera",
+    name: "Orthoptera",
+    commonName: "Saltamontes y grillos",
+    description: "Orden de insectos con patas posteriores adaptadas para el salto. Muchas especies producen sonido por estridulación.",
+    speciesCount: 28000,
+    iconEmoji: "🦗",
+    families: [
+      {
+        id: "acrididae",
+        orderId: "orthoptera",
+        name: "Acrididae",
+        commonName: "Acrídidos / Langostas",
+        description: "Familia de ortópteros fitófagos. Algunas especies exhiben fase gregaria formando enjambres devastadores.",
+        speciesCount: 10000,
+        species: [
+          {
+            id: "schistocerca-gregaria",
+            familyId: "acrididae",
+            orderId: "orthoptera",
+            scientificName: "Schistocerca gregaria",
+            commonName: "Langosta del desierto",
+            author: "Forskål",
+            year: 1775,
+            description: "Especie con polimorfismo de fase (solitaria/gregaria) que puede formar enjambres de miles de millones de individuos, causando devastación agrícola.",
+            developmentType: "Hemimetábolo",
+            conservationStatus: "LC",
+            habitat: ["Desiertos", "Sabanas semiáridas", "Tierras agrícolas"],
+            distribution: "Norte de África, Oriente Medio, Asia Meridional.",
+            size: { min: 60, max: 75, unit: "mm" },
+            lifecycle: {
+              stages: ["Huevo", "Ninfa (5-6 instares)", "Adulto"],
+              duration: "3-6 meses según temperatura",
+            },
+            diet: "Herbívoro generalista (hojas, tallos, frutos)",
+            characteristics: [
+              "Polimorfismo de fase (solitaria/gregaria)",
+              "Cambio de coloración según densidad poblacional",
+              "Capacidad de vuelo de larga distancia",
+              "Enjambres de hasta 80 millones/km²",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "odonata",
+    name: "Odonata",
+    commonName: "Libélulas y caballitos del diablo",
+    description: "Depredadores aéreos con visión excepcional y vuelo acrobático. Larvas acuáticas con labio prensil extensible.",
+    speciesCount: 6000,
+    iconEmoji: "🪰",
+    families: [
+      {
+        id: "libellulidae",
+        orderId: "odonata",
+        name: "Libellulidae",
+        commonName: "Libélulas",
+        description: "La familia más grande de odonatos. Depredadores eficientes tanto en fase larvaria (acuática) como adulta (aérea).",
+        speciesCount: 1000,
+        species: [
+          {
+            id: "anax-imperator",
+            familyId: "libellulidae",
+            orderId: "odonata",
+            scientificName: "Anax imperator",
+            commonName: "Libélula emperador",
+            author: "Leach",
+            year: 1815,
+            description: "Una de las libélulas más grandes de Europa. Macho con abdomen azul brillante. Depredador aéreo capaz de capturar presas en vuelo con tasa de éxito >95%.",
+            developmentType: "Hemimetábolo",
+            conservationStatus: "LC",
+            habitat: ["Lagos", "Estanques", "Ríos lentos", "Humedales"],
+            distribution: "Europa, África, Asia Occidental.",
+            size: { min: 66, max: 84, unit: "mm" },
+            lifecycle: {
+              stages: ["Huevo", "Náyade (10-15 instares)", "Adulto"],
+              duration: "1-2 años (fase larvaria acuática)",
+            },
+            diet: "Insectos voladores, larvas acuáticas",
+            characteristics: [
+              "Abdomen azul brillante (machos)",
+              "Tórax verde",
+              "Vuelo patrullero territorial",
+              "Tasa de captura >95%",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "diptera",
+    name: "Diptera",
+    commonName: "Moscas y mosquitos",
+    description: "Único orden de insectos con un solo par de alas funcionales. Halterios (alas posteriores modificadas) actúan como giroscopios. Incluye vectores de enfermedades y polinizadores.",
+    speciesCount: 150000,
+    iconEmoji: "🪰",
+    families: [
+      {
+        id: "culicidae",
+        orderId: "diptera",
+        name: "Culicidae",
+        commonName: "Mosquitos",
+        description: "Familia de dípteros hematófagos. Las hembras requieren sangre para la maduración de los huevos. Vectores de malaria, dengue y Zika.",
+        speciesCount: 3600,
+        species: [
+          {
+            id: "aedes-aegypti",
+            familyId: "culicidae",
+            orderId: "diptera",
+            scientificName: "Aedes aegypti",
+            commonName: "Mosquito de la fiebre amarilla",
+            author: "Linnaeus",
+            year: 1762,
+            description: "Principal vector de dengue, Zika, chikungunya y fiebre amarilla. Especie sinantrópica con preferencia por hábitats urbanos.",
+            developmentType: "Holometábolo",
+            conservationStatus: "LC",
+            habitat: ["Urbano", "Suburbano", "Zonas tropicales"],
+            distribution: "Pantropical, originario de África.",
+            size: { min: 4, max: 7, unit: "mm" },
+            lifecycle: {
+              stages: ["Huevo", "Larva (4 instares)", "Pupa", "Adulto"],
+              duration: "7-10 días",
+            },
+            diet: "Hembra: sangre + néctar. Macho: néctar",
+            characteristics: [
+              "Marcas blancas en forma de lira en el tórax",
+              "Bandas blancas en las patas",
+              "Actividad diurna (pico al amanecer/anochecer)",
+              "Oviposición en recipientes artificiales",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export function getOrder(id: string) {
+  return taxonomyData.find((o) => o.id === id);
+}
+
+export function getFamily(orderId: string, familyId: string) {
+  const order = getOrder(orderId);
+  return order?.families.find((f) => f.id === familyId);
+}
+
+export function getSpecies(orderId: string, familyId: string, speciesId: string) {
+  const family = getFamily(orderId, familyId);
+  return family?.species.find((s) => s.id === speciesId);
+}
