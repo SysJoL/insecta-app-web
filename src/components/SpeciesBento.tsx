@@ -1,9 +1,11 @@
 import { Species, conservationColors, conservationLabels, developmentColors } from "@/types/taxonomy";
 import { Badge } from "@/components/ui/badge";
-import { Leaf, MapPin, Ruler, Clock, Utensils, Dna } from "lucide-react";
+import { Leaf, MapPin, Ruler, Clock, Utensils, Dna, ListTree } from "lucide-react";
 
 interface SpeciesBentoProps {
   species: Species;
+  orderName?: string;
+  familyName?: string;
 }
 
 function InfoCell({ icon: Icon, label, children }: { icon: typeof Leaf; label: string; children: React.ReactNode }) {
