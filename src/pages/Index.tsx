@@ -1,6 +1,7 @@
 import { taxonomyData } from "@/data/insects";
 import { OrderCard } from "@/components/OrderCard";
 import { AppHeader } from "@/components/AppHeader";
+import { TaxonomyChart } from "@/components/TaxonomyChart";
 import { Bug } from "lucide-react";
 import heroImage from "@/assets/hero-insects.jpg";
 
@@ -29,6 +30,9 @@ const Index = () => {
             <img src={heroImage} alt="Ilustración científica de insectos" width={1280} height={512} className="w-full h-auto" />
           </div>
         </div>
+
+        {/* Taxonomy Distribution Chart */}
+        <TaxonomyChart />
 
         {/* Orders Grid */}
         <section className="space-y-4">
