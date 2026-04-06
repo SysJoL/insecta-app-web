@@ -2,6 +2,7 @@ import { taxonomyData } from "@/data/insects";
 import { OrderCard } from "@/components/OrderCard";
 import { AppHeader } from "@/components/AppHeader";
 import { Bug } from "lucide-react";
+import heroImage from "@/assets/hero-insects.jpg";
 
 const Index = () => {
   return (
