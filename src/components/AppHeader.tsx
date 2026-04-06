@@ -1,5 +1,6 @@
-import { Bug, Search } from "lucide-react";
+import { Bug } from "lucide-react";
 import { Link } from "react-router-dom";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 export function AppHeader() {
   return (
@@ -9,11 +10,14 @@ export function AppHeader() {
           <Bug className="h-5 w-5 text-primary" />
           <span>InsectApp</span>
         </Link>
-        <nav className="flex items-center gap-4 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground transition-colors">
-            Explorar
-          </Link>
-        </nav>
+        <div className="flex items-center gap-4">
+          <GlobalSearch />
+          <nav className="flex items-center text-sm text-muted-foreground">
+            <Link to="/" className="hover:text-foreground transition-colors">
+              Explorar
+            </Link>
+          </nav>
+        </div>
       </div>
     </header>
   );
