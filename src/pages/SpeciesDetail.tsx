@@ -30,7 +30,7 @@ const SpeciesDetail = () => {
           ]}
         />
 
-        <SpeciesBento species={species} />
+        <SpeciesBento species={species} orderName={order.name} familyName={family.name} />
       </main>
     </div>
   );
