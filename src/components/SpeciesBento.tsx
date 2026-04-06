@@ -1,9 +1,11 @@
 import { Species, conservationColors, conservationLabels, developmentColors } from "@/types/taxonomy";
 import { Badge } from "@/components/ui/badge";
-import { Leaf, MapPin, Ruler, Clock, Utensils, Dna } from "lucide-react";
+import { Leaf, MapPin, Ruler, Clock, Utensils, Dna, ListTree } from "lucide-react";
 
 interface SpeciesBentoProps {
   species: Species;
+  orderName?: string;
+  familyName?: string;
 }
 
 function InfoCell({ icon: Icon, label, children }: { icon: typeof Leaf; label: string; children: React.ReactNode }) {
@@ -18,7 +20,7 @@ function InfoCell({ icon: Icon, label, children }: { icon: typeof Leaf; label: s
   );
 }
 
-export function SpeciesBento({ species }: SpeciesBentoProps) {
+export function SpeciesBento({ species, orderName, familyName }: SpeciesBentoProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -47,6 +49,15 @@ export function SpeciesBento({ species }: SpeciesBentoProps) {
 
       {/* Bento Grid */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <InfoCell icon={ListTree} label="Taxonomía">
+          <ul className="space-y-1 text-xs">
+            <li><span className="text-muted-foreground">Clase:</span> Insecta</li>
+            {orderName && <li><span className="text-muted-foreground">Orden:</span> {orderName}</li>}
+            {familyName && <li><span className="text-muted-foreground">Familia:</span> {familyName}</li>}
+            <li><span className="text-muted-foreground">Especie:</span> <em>{species.scientificName}</em></li>
+          </ul>
+        </InfoCell>
+
         <InfoCell icon={Ruler} label="Tamaño">
           {species.size.min}–{species.size.max} {species.size.unit}
         </InfoCell>
