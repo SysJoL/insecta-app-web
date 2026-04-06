@@ -31,6 +31,9 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Taxonomy Distribution Chart */}
+        <TaxonomyChart />
+
         {/* Orders Grid */}
         <section className="space-y-4">
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
