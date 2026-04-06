@@ -20,7 +20,7 @@ function InfoCell({ icon: Icon, label, children }: { icon: typeof Leaf; label: s
   );
 }
 
-export function SpeciesBento({ species }: SpeciesBentoProps) {
+export function SpeciesBento({ species, orderName, familyName }: SpeciesBentoProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
