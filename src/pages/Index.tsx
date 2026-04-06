@@ -1,6 +1,7 @@
 import { taxonomyData } from "@/data/insects";
 import { OrderCard } from "@/components/OrderCard";
 import { AppHeader } from "@/components/AppHeader";
+import { TaxonomyChart } from "@/components/TaxonomyChart";
 import { Bug } from "lucide-react";
 import heroImage from "@/assets/hero-insects.jpg";
 
