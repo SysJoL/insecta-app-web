@@ -35,6 +35,8 @@ export interface QuizQuestion {
   hints?: string[];
   /** Para modo ecosistema: subtítulo de la relación trófica */
   ecosystemLabel?: string;
+  /** URL de imagen real del espécimen (iNaturalist) */
+  image?: string;
 }
 
 export interface QuizModeInfo {

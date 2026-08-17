@@ -28,6 +28,7 @@ import {
   sfxStation,
   sfxGameOver,
 } from "../lib/audio";
+import { fetchTaxonPhoto } from "../lib/inat";
 import QuizResults from "./QuizResults";
 
 interface Props {
@@ -64,6 +65,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
   const [responseTimes, setResponseTimes] = useState<number[]>([]);
   const [lives, setLives] = useState(3);
   const [stationIdx, setStationIdx] = useState(0);
+  const [questionImage, setQuestionImage] = useState<string | null>(null);
 
   const questionStartTime = useRef(0);
   const timerRef = useRef<number | undefined>(undefined);
@@ -127,6 +129,21 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
 
     return () => window.clearInterval(timerRef.current);
   }, [phase, currentQ, questions, mode, streak]);
+
+  // Fetch photo for current question's specimen
+  useEffect(() => {
+    const q = questions[currentQ];
+    if (!q || !q.displayLabel) {
+      setQuestionImage(null);
+      return;
+    }
+    setQuestionImage(null); // clear while loading
+    let cancelled = false;
+    fetchTaxonPhoto(q.displayLabel).then((url) => {
+      if (!cancelled) setQuestionImage(url);
+    });
+    return () => { cancelled = true; };
+  }, [currentQ, questions]);
 
   const handleAnswer = useCallback(
     (selectedIndex: number) => {
@@ -648,6 +665,33 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
                     </g>
                   )}
                 </svg>
+              </div>
+            </div>
+          )}
+
+          {/* Specimen photo for daily/expedition/speed modes */}
+          {q.displayLabel && !q.glyphKey && (
+            <div className="mb-6 flex justify-center">
+              <div className="label-frame bg-pine/80 overflow-hidden" style={{ maxWidth: 280 }}>
+                {questionImage ? (
+                  <img
+                    src={questionImage}
+                    alt={q.displayLabel}
+                    className="h-48 w-full object-cover"
+                    loading="eager"
+                  />
+                ) : (
+                  <div className="flex h-48 w-64 items-center justify-center shimmer">
+                    <span className="text-[10px] font-bold tracking-[0.14em] text-sage/50 uppercase">
+                      Cargando espécimen…
+                    </span>
+                  </div>
+                )}
+                <div className="border-t border-moss/40 px-3 py-2 text-center">
+                  <p className="text-[9px] font-bold tracking-[0.14em] text-sage/60 uppercase">
+                    Espécimen #{questions.indexOf(q) + 1}
+                  </p>
+                </div>
               </div>
             </div>
           )}

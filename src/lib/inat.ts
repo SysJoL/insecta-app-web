@@ -319,3 +319,24 @@ export const EXTERNAL = {
   wikiSearch: (name: string) =>
     `https://es.wikipedia.org/w/index.php?search=${encodeURIComponent(name)}`,
 };
+
+/* ---------- photo cache for quiz ---------- */
+
+const photoCache = new Map<string, string | null>();
+
+export async function fetchTaxonPhoto(latinName: string): Promise<string | null> {
+  if (photoCache.has(latinName)) return photoCache.get(latinName) ?? null;
+  try {
+    const data = await inatFetch<{ results: { default_photo?: { url: string } }[] }>(
+      `/taxa?q=${encodeURIComponent(latinName)}&rank=species&per_page=1`
+    );
+    const url = data.results[0]?.default_photo?.url
+      ? upgradePhoto(data.results[0].default_photo.url)
+      : null;
+    photoCache.set(latinName, url);
+    return url;
+  } catch {
+    photoCache.set(latinName, null);
+    return null;
+  }
+}
