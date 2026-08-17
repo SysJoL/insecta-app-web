@@ -144,7 +144,7 @@ export default function Quiz({ profile, onProfileUpdate, orderMap }: Props) {
             </div>
 
             {/* Daily + Expedition side by side */}
-            <div className="mb-8 grid gap-6 sm:grid-cols-2">
+            <div className="mb-8 grid gap-6 sm:grid-cols-2 items-stretch">
             {/* Daily Challenge card */}
             <div className="label-frame bg-pine/70 p-5">
               <div className="flex items-center justify-between gap-4">
