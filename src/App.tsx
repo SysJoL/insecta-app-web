@@ -27,6 +27,8 @@ import Footer from "./components/Footer";
 import ScrollProgress from "./components/ScrollProgress";
 import StatBlock from "./components/StatBlock";
 import FilterSheet from "./components/FilterSheet";
+import Quiz from "./components/Quiz";
+import { loadProfile, saveProfile, type PlayerProfile, DEFAULT_PROFILE } from "./lib/quizEngine";
 import { SlidersHorizontal } from "lucide-react";
 
 /* ---------------- persistencia ---------------- */
@@ -34,6 +36,7 @@ import { SlidersHorizontal } from "lucide-react";
 const COL_KEY = "insecta:caja:v2";
 const LOG_KEY = "insecta:cuaderno:v2";
 const WISH_KEY = "insecta:wishlist:v1";
+const QUIZ_KEY = "insecta:quiz-stats:v1";
 
 function loadJSON<T>(key: string, fallback: T): T {
   try {
@@ -139,6 +142,7 @@ export default function App() {
     loadJSON<Record<string, SavedSpecimen>>(WISH_KEY, {})
   );
   const [sightings, setSightings] = useState<Sighting[]>(() => loadJSON<Sighting[]>(LOG_KEY, []));
+  const [quizProfile, setQuizProfile] = useState<PlayerProfile>(() => loadProfile());
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | undefined>(undefined);
 
@@ -152,6 +156,7 @@ export default function App() {
   useEffect(() => localStorage.setItem(COL_KEY, JSON.stringify(collection)), [collection]);
   useEffect(() => localStorage.setItem(WISH_KEY, JSON.stringify(wishList)), [wishList]);
   useEffect(() => localStorage.setItem(LOG_KEY, JSON.stringify(sightings)), [sightings]);
+  useEffect(() => saveProfile(quizProfile), [quizProfile]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -1159,6 +1164,30 @@ export default function App() {
                 Comparador a escala real
               </h3>
               <ScaleTool />
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ---------- quiz: mesa de estudio ---------- */}
+        <section id="quiz" className="relative border-t border-moss/60 bg-ink/50">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+            <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-bold tracking-[0.3em] text-sage uppercase">
+                  Aprende entomología jugando
+                </p>
+                <h2 className="mt-1 font-display text-4xl font-black text-parch sm:text-5xl">
+                  Mesa de estudio<span className="text-amber">.</span>
+                </h2>
+              </div>
+              <p className="max-w-sm text-sm text-bone/60">
+                Cinco modos para dominar nombres científicos, órdenes, etimología y taxonomía.
+                Gana puntos, sube de nivel y construye tu colección de conocimiento.
+              </p>
+            </Reveal>
+
+            <Reveal delay={80}>
+              <Quiz profile={quizProfile} onProfileUpdate={setQuizProfile} />
             </Reveal>
           </div>
         </section>

@@ -6,6 +6,7 @@ const NAV_ITEMS: [string, string][] = [
   ["Atlas", "#atlas"],
   ["Ciencia", "#ciencia"],
   ["Herramientas", "#herramientas"],
+  ["Quiz", "#quiz"],
   ["Caja", "#caja"],
   ["Deseos", "#deseos"],
   ["Cuaderno", "#cuaderno"],

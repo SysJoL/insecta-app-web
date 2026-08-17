@@ -395,6 +395,45 @@ textarea {
     0 2px 6px rgba(0, 0, 0, 0.55);
 }
 
+/* ---------- quiz animations ---------- */
+
+@keyframes quiz-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px); }
+  30% { transform: translateX(5px); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+}
+.quiz-shake {
+  animation: quiz-shake 0.4s ease-in-out;
+}
+
+@keyframes quiz-pulse-correct {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); box-shadow: 0 0 20px rgba(163, 194, 147, 0.3); }
+  100% { transform: scale(1); }
+}
+.quiz-pulse-correct {
+  animation: quiz-pulse-correct 0.4s ease;
+}
+
+@keyframes streak-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(229, 168, 59, 0.4); }
+  50% { box-shadow: 0 0 12px 4px rgba(229, 168, 59, 0.25); }
+}
+.streak-glow {
+  animation: streak-glow 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quiz-shake,
+  .quiz-pulse-correct,
+  .streak-glow {
+    animation: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .marquee-track,
   .float-slow,
