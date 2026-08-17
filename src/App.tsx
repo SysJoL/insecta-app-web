@@ -1,21 +1,23 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
+import { SPECIMENS } from "./data/insects";
 import {
-  ORDERS,
-  ORDER_COUNTS,
-  SPECIMENS,
-  STATUS_META,
-  fmtMm,
-  type Insect,
-} from "./data/insects";
+  fetchOrders,
+  fetchTopSpecies,
+  fmtCompact,
+  searchSpecies,
+  type CardTaxon,
+  type OrderInfo,
+} from "./lib/inat";
 import { OrderGlyph, PinMark } from "./components/glyphs";
 import { Reveal, useCountUp } from "./components/Reveal";
 import Fireflies from "./components/Fireflies";
-import SpecimenModal from "./components/SpecimenModal";
+import TaxonCard from "./components/TaxonCard";
+import TaxonModal from "./components/TaxonModal";
 
 /* ---------------- persistencia ---------------- */
 
-const COL_KEY = "insecta:caja";
-const LOG_KEY = "insecta:cuaderno";
+const COL_KEY = "insecta:caja:v2";
+const LOG_KEY = "insecta:cuaderno:v2";
 
 function loadJSON<T>(key: string, fallback: T): T {
   try {
@@ -26,14 +28,35 @@ function loadJSON<T>(key: string, fallback: T): T {
   }
 }
 
+interface SavedSpecimen {
+  id: string;
+  latin: string;
+  common: string | null;
+  orderName: string;
+  photoUrl: string | null;
+}
+
 interface Sighting {
   id: string;
-  insectId: string;
+  species: string;
   place: string;
   date: string;
   note: string;
   createdAt: number;
 }
+
+/** Cajón curado local: respaldo académico sin conexión. */
+const CURATED_CARDS: CardTaxon[] = SPECIMENS.map((s) => ({
+  id: `local:${s.id}`,
+  latin: s.latin,
+  common: s.name,
+  orderName: s.order,
+  rank: "species",
+  observations: 0,
+  photoUrl: null,
+  curated: true,
+  glyphKey: s.orderKey,
+}));
 
 /* ---------------- piezas pequeñas ---------------- */
 
@@ -58,11 +81,8 @@ function ScrollProgress() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   return (
-    <div className="fixed top-0 left-0 z-[70] h-[3px] w-full bg-transparent">
-      <div
-        className="h-full bg-amber transition-[width] duration-150 ease-out"
-        style={{ width: `${p}%` }}
-      />
+    <div className="fixed top-0 left-0 z-[70] h-[3px] w-full">
+      <div className="h-full bg-amber transition-[width] duration-150 ease-out" style={{ width: `${p}%` }} />
     </div>
   );
 }
@@ -81,135 +101,66 @@ function StatBlock({ target, suffix, label, sub }: { target: number; suffix?: st
   );
 }
 
-function SpecimenCard({
-  s,
-  collected,
-  onOpen,
-  onCollect,
-}: {
-  s: Insect;
-  collected: boolean;
-  onOpen: () => void;
-  onCollect: () => void;
-}) {
-  const st = STATUS_META[s.status];
+function SkeletonCard() {
   return (
-    <article
-      className={`group relative h-full cursor-pointer border bg-pine/90 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_50px_rgba(0,0,0,0.55)] ${
-        collected ? "border-amber/50" : "border-moss hover:border-amber/60"
-      }`}
-      style={{ "--acc": s.accent } as React.CSSProperties}
-      onClick={onOpen}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && onOpen()}
-      aria-label={`Abrir ficha de ${s.name}`}
-    >
-      {collected && <PinMark className="absolute top-3 right-3 z-10 h-6 w-6 text-amber drop-shadow" />}
-
-      <div className="bg-pingrid relative flex aspect-[7/5] items-center justify-center overflow-hidden border-b border-moss/70 bg-fern/40">
-        <span className="absolute top-2 left-2 font-display text-[11px] tracking-[0.2em] text-bone/35 uppercase">
-          {s.order.slice(0, 5)}.
-        </span>
-        <OrderGlyph
-          k={s.orderKey}
-          className="h-24 w-24 text-bone/80 transition-all duration-300 group-hover:scale-110 group-hover:text-[color:var(--acc)]"
-        />
-        <span className="absolute right-2 bottom-2 h-2 w-2 rounded-full" style={{ background: s.accent }} />
+    <div className="overflow-hidden border border-moss bg-pine/90">
+      <div className="shimmer aspect-[5/4] border-b border-moss/70" />
+      <div className="space-y-2.5 p-4">
+        <div className="shimmer h-3 w-1/3" />
+        <div className="shimmer h-5 w-4/5" />
+        <div className="shimmer h-3.5 w-1/2" />
+        <div className="shimmer mt-4 h-7 w-full" />
       </div>
+    </div>
+  );
+}
 
-      <div className="p-4">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] font-semibold tracking-[0.2em] text-sage uppercase">
-            {s.order}
-          </span>
-          <span
-            className={`border px-1.5 py-0.5 text-[9px] tracking-[0.16em] uppercase ${
-              st.color === "sage"
-                ? "border-sage/50 text-sage"
-                : st.color === "amber"
-                  ? "border-amber/60 text-amber"
-                  : "border-rust/60 text-rust"
-            }`}
-          >
-            {s.status}
-          </span>
-        </div>
-        <h3 className="mt-1.5 font-display text-xl leading-tight font-bold text-parch">
-          {s.name}
-        </h3>
-        <p className="font-display text-sm text-[color:var(--acc)] italic">
-          {s.latin}
-          <span className="ml-1.5 font-body text-[10px] text-bone/45 not-italic">{s.year}</span>
-        </p>
-
-        <div className="mt-3 flex items-center justify-between border-t border-moss/60 pt-3 text-xs text-bone/70">
-          <span>{fmtMm(s.sizeMm)}{s.wingspanMm ? ` · Ø ${fmtMm(s.wingspanMm)}` : ""}</span>
-          <span className="flex items-center gap-1" title={`Rareza ${s.rarity}/5`}>
-            {Array.from({ length: 5 }, (_, i) => (
-              <span
-                key={i}
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ background: i < s.rarity ? s.accent : "rgba(163,194,147,0.2)" }}
-              />
-            ))}
-          </span>
-        </div>
-
-        <div className="mt-3 flex items-center justify-between">
-          <span className="text-[11px] font-semibold tracking-[0.18em] text-bone/50 uppercase transition-colors group-hover:text-amber">
-            Abrir ficha →
-          </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onCollect();
-            }}
-            className={`border px-2.5 py-1 text-[10px] font-semibold tracking-[0.16em] uppercase transition-colors ${
-              collected
-                ? "border-amber bg-amber text-ink"
-                : "border-moss text-sage hover:border-amber/60 hover:text-amber"
-            }`}
-            aria-label={collected ? `Quitar ${s.name} de la caja` : `Añadir ${s.name} a la caja`}
-          >
-            {collected ? "En caja" : "Colectar"}
-          </button>
-        </div>
-      </div>
-    </article>
+function ExternalLinkIcon() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 12 12 4M6 4h6v6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
 /* ---------------- App ---------------- */
 
-type SortKey = "name" | "size" | "rarity" | "year";
+type SortKey = "obs" | "name";
+type ApiStatus = "boot" | "online" | "offline";
 
 export default function App() {
   const clock = useClock();
 
-  const [query, setQuery] = useState("");
-  const [orderFilter, setOrderFilter] = useState<string>("Todos");
-  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [orders, setOrders] = useState<OrderInfo[]>([]);
+  const orderMapRef = useRef<Map<number, string>>(new Map());
 
-  const [active, setActive] = useState<Insect | null>(null);
-  const [collection, setCollection] = useState<string[]>(() => loadJSON<string[]>(COL_KEY, []));
+  const [cards, setCards] = useState<CardTaxon[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [apiStatus, setApiStatus] = useState<ApiStatus>("boot");
+  const [localMode, setLocalMode] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<number | null>(null);
+
+  const [activeOrder, setActiveOrder] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("obs");
+
+  const [active, setActive] = useState<CardTaxon | null>(null);
+  const [collection, setCollection] = useState<Record<string, SavedSpecimen>>(() =>
+    loadJSON<Record<string, SavedSpecimen>>(COL_KEY, {})
+  );
   const [sightings, setSightings] = useState<Sighting[]>(() => loadJSON<Sighting[]>(LOG_KEY, []));
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | undefined>(undefined);
 
-  // formulario de cuaderno
-  const [fInsect, setFInsect] = useState(SPECIMENS[0].id);
+  // cuaderno
+  const [fSpecies, setFSpecies] = useState("");
   const [fPlace, setFPlace] = useState("");
   const [fDate, setFDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [fNote, setFNote] = useState("");
   const [fError, setFError] = useState("");
 
-  useEffect(() => {
-    localStorage.setItem(COL_KEY, JSON.stringify(collection));
-  }, [collection]);
-  useEffect(() => {
-    localStorage.setItem(LOG_KEY, JSON.stringify(sightings));
-  }, [sightings]);
+  useEffect(() => localStorage.setItem(COL_KEY, JSON.stringify(collection)), [collection]);
+  useEffect(() => localStorage.setItem(LOG_KEY, JSON.stringify(sightings)), [sightings]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -217,62 +168,141 @@ export default function App() {
     toastTimer.current = window.setTimeout(() => setToast(null), 2600);
   }, []);
 
+  /* ---------- carga de datos en vivo ---------- */
+
+  const reqId = useRef(0);
+
+  const refresh = useCallback(
+    async (orderId: number | null, q: string) => {
+      const my = ++reqId.current;
+      setLoading(true);
+      setLocalMode(false);
+      try {
+        const data = q.trim()
+          ? await searchSpecies(q, orderMapRef.current)
+          : await fetchTopSpecies(orderMapRef.current, orderId);
+        if (my !== reqId.current) return;
+        setCards(data);
+        setApiStatus("online");
+        setLastUpdate(Date.now());
+      } catch {
+        if (my !== reqId.current) return;
+        setApiStatus("offline");
+        setCards([]);
+      } finally {
+        if (my === reqId.current) setLoading(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const os = await fetchOrders();
+        if (!alive) return;
+        const map = new Map(os.map((o) => [o.id, o.name]));
+        orderMapRef.current = map;
+        setOrders(os);
+      } catch {
+        /* seguimos sin chips de órdenes; la carga principal puede funcionar igual */
+      }
+      if (alive) refresh(null, "");
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // búsqueda con pausa tipográfica
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      if (query.trim()) refresh(activeOrder, query);
+      else if (!loading && apiStatus !== "boot") refresh(activeOrder, "");
+    }, 480);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  const handleOrder = (id: number | null) => {
+    setActiveOrder(id);
+    setQuery("");
+    refresh(id, "");
+  };
+
+  const handleLocalMode = () => {
+    reqId.current++;
+    setLoading(false);
+    setLocalMode(true);
+    setApiStatus("offline");
+    setCards(CURATED_CARDS);
+    showToast("Cajón local abierto: 14 especímenes curados");
+  };
+
+  /* ---------- colección ---------- */
+
   const toggleCollect = useCallback(
-    (id: string) => {
+    (t: CardTaxon) => {
       setCollection((prev) => {
-        const has = prev.includes(id);
-        const next = has ? prev.filter((x) => x !== id) : [...prev, id];
-        const sp = SPECIMENS.find((s) => s.id === id);
-        showToast(
-          has
-            ? `${sp?.name ?? "Especimen"} devuelto al cajón`
-            : `${sp?.name ?? "Especimen"} fijado en tu caja`
-        );
+        const has = prev[t.id];
+        const next = { ...prev };
+        if (has) delete next[t.id];
+        else
+          next[t.id] = {
+            id: t.id,
+            latin: t.latin,
+            common: t.common,
+            orderName: t.orderName,
+            photoUrl: t.photoUrl,
+          };
+        showToast(has ? `${t.latin} devuelto al cajón` : `${t.latin} fijado en tu caja`);
         return next;
       });
     },
     [showToast]
   );
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    let list = SPECIMENS.filter((s) => {
-      const matchesOrder = orderFilter === "Todos" || s.order === orderFilter;
-      const matchesQuery =
-        !q ||
-        s.name.toLowerCase().includes(q) ||
-        s.latin.toLowerCase().includes(q) ||
-        s.order.toLowerCase().includes(q) ||
-        s.family.toLowerCase().includes(q);
-      return matchesOrder && matchesQuery;
-    });
-    list = [...list].sort((a, b) => {
-      switch (sortKey) {
-        case "size":
-          return b.sizeMm - a.sizeMm;
-        case "rarity":
-          return b.rarity - a.rarity;
-        case "year":
-          return a.year - b.year;
-        default:
-          return a.name.localeCompare(b.name, "es");
-      }
-    });
+  /* ---------- derivados ---------- */
+
+  const sortedCards = useMemo(() => {
+    const list = [...cards];
+    if (sortKey === "name") list.sort((a, b) => a.latin.localeCompare(b.latin, "es"));
+    else list.sort((a, b) => b.observations - a.observations);
     return list;
-  }, [query, orderFilter, sortKey]);
+  }, [cards, sortKey]);
 
-  const featured = useMemo(() => [SPECIMENS[0], SPECIMENS[1], SPECIMENS[10]], []);
+  const totalObs = useMemo(() => cards.reduce((acc, c) => acc + c.observations, 0), [cards]);
+  const heroCards = useMemo(() => cards.filter((c) => c.photoUrl).slice(0, 3), [cards]);
+  const marqueeNames = useMemo(
+    () => (cards.length ? cards.map((c) => c.latin).slice(0, 16) : CURATED_CARDS.map((c) => c.latin)),
+    [cards]
+  );
+  const collectionList = useMemo(() => Object.values(collection), [collection]);
+  const suggestionNames = useMemo(() => {
+    const set = new Set<string>();
+    cards.forEach((c) => set.add(c.latin));
+    CURATED_CARDS.forEach((c) => set.add(c.latin));
+    return [...set];
+  }, [cards]);
 
-  const addSighting = (e: React.FormEvent) => {
+  /* ---------- cuaderno ---------- */
+
+  const addSighting = (e: FormEvent) => {
     e.preventDefault();
     if (!fPlace.trim()) {
       setFError("Indica la localidad del avistamiento.");
       return;
     }
+    if (!fSpecies.trim()) {
+      setFError("Indica la especie observada (puedes elegir de la lista).");
+      return;
+    }
     setFError("");
     const entry: Sighting = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      insectId: fInsect,
+      species: fSpecies.trim(),
       place: fPlace.trim(),
       date: fDate,
       note: fNote.trim(),
@@ -281,6 +311,7 @@ export default function App() {
     setSightings((prev) => [entry, ...prev]);
     setFPlace("");
     setFNote("");
+    setFSpecies("");
     showToast("Anotación registrada en el cuaderno");
   };
 
@@ -289,7 +320,12 @@ export default function App() {
     showToast("Anotación eliminada");
   };
 
-  const latinNames = SPECIMENS.map((s) => s.latin);
+  const statusMeta =
+    apiStatus === "online"
+      ? { label: localMode ? "Cajón local" : "API iNaturalist · en línea", cls: "bg-limey" }
+      : apiStatus === "boot"
+        ? { label: "Conectando con iNaturalist…", cls: "bg-amber" }
+        : { label: localMode ? "Cajón local" : "API sin conexión", cls: "bg-rust" };
 
   return (
     <div className="relative min-h-screen">
@@ -299,7 +335,7 @@ export default function App() {
         className="fixed inset-0 z-0"
         style={{
           background:
-            "radial-gradient(1100px 600px at 78% -10%, rgba(36,54,38,0.55), transparent 60%), radial-gradient(900px 700px at -10% 105%, rgba(28,40,28,0.7), transparent 55%), linear-gradient(180deg, rgba(13,19,14,0) 0%, rgba(13,19,14,0.85) 100%)",
+            "radial-gradient(1100px 600px at 78% -10%, rgba(36,54,38,0.55), transparent 60%), radial-gradient(900px 700px at -10% 105%, rgba(28,40,28,0.7), transparent 55%)",
         }}
       />
       <div className="pointer-events-none fixed inset-0 z-[1] opacity-60">
@@ -317,78 +353,81 @@ export default function App() {
               <span className="font-display text-lg font-black tracking-tight text-parch">
                 INSECTA
                 <span className="ml-2 hidden text-[10px] font-semibold tracking-[0.26em] text-sage/80 uppercase sm:inline">
-                  Guía de campo · Vol. IV
+                  Atlas entomológico en vivo
                 </span>
               </span>
             </a>
 
             <nav className="hidden items-center gap-6 text-[12px] font-semibold tracking-[0.18em] uppercase md:flex">
               {[
-                ["Colección", "#coleccion"],
-                ["Cifras", "#cifras"],
+                ["Atlas", "#atlas"],
+                ["Caja", "#caja"],
                 ["Cuaderno", "#cuaderno"],
+                ["Fuentes", "#fuentes"],
               ].map(([label, href]) => (
-                <a
-                  key={href}
-                  href={href}
-                  className="text-bone/65 transition-colors hover:text-amber"
-                >
+                <a key={href} href={href} className="text-bone/65 transition-colors hover:text-amber">
                   {label}
                 </a>
               ))}
             </nav>
 
             <div className="flex items-center gap-3">
-              <span className="hidden items-center gap-1.5 border border-moss/70 px-2 py-1 font-mono text-[11px] text-sage tabular-nums lg:flex">
-                <span className="blink-dot h-1.5 w-1.5 rounded-full bg-amber" />
-                {clock} · estación de campo
+              <span className="hidden items-center gap-2 border border-moss/70 px-2.5 py-1 text-[11px] text-sage lg:flex">
+                <span className={`blink-dot h-1.5 w-1.5 rounded-full ${statusMeta.cls}`} />
+                {statusMeta.label} · <span className="font-mono tabular-nums">{clock}</span>
               </span>
               <a
-                href="#coleccion"
+                href="#caja"
                 className="flex items-center gap-2 border border-amber/60 bg-amber/10 px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-amber uppercase transition-colors hover:bg-amber hover:text-ink"
               >
                 <PinMark className="h-4 w-4" />
-                Caja · {collection.length}
+                Caja · {collectionList.length}
               </a>
             </div>
           </div>
         </header>
 
-        {/* ---------- apertura: cajón de especímenes ---------- */}
+        {/* ---------- apertura ---------- */}
         <section id="inicio" className="relative overflow-hidden">
           <div className="mx-auto grid max-w-7xl gap-12 px-4 pt-14 pb-16 sm:px-6 lg:grid-cols-12 lg:pt-20">
             <div className="lg:col-span-7">
               <p className="line-mask text-[11px] font-bold tracking-[0.34em] text-sage uppercase">
                 <span style={{ animationDelay: "0.05s" }}>
-                  Lámina IV — Sistemática de los hexápodos
+                  Ciencia abierta · datos en vivo de iNaturalist
                 </span>
               </p>
 
               <h1 className="mt-4 font-display font-black tracking-tight">
-                <span className="line-mask text-[clamp(4.2rem,13vw,10rem)] leading-[0.86] text-parch">
+                <span className="line-mask text-[clamp(3.4rem,10vw,7.5rem)] leading-[0.88] text-parch">
                   <span style={{ animationDelay: "0.15s" }}>
-                    INSECTA<span className="text-amber">.</span>
+                    ATLAS<span className="text-amber">.</span>
                   </span>
                 </span>
-                <span className="line-mask mt-2 text-[clamp(1.6rem,4vw,3rem)] leading-tight text-sage italic">
-                  <span style={{ animationDelay: "0.3s" }}>el mundo en seis patas</span>
+                <span className="line-mask text-[clamp(3.4rem,10vw,7.5rem)] leading-[0.88] text-parch">
+                  <span style={{ animationDelay: "0.27s" }}>
+                    ENTOMOLÓGICO
+                  </span>
+                </span>
+                <span className="line-mask mt-3 text-[clamp(1.4rem,3.4vw,2.4rem)] leading-tight text-sage italic">
+                  <span style={{ animationDelay: "0.4s" }}>taxonomía viva, fotos de campo verificadas</span>
                 </span>
               </h1>
 
               <div className="line-mask mt-6 max-w-xl">
-                <p className="text-[15px] leading-relaxed text-bone/80" style={{ animationDelay: "0.45s" }}>
-                  Un gabinete entomológico vivo: catorce especímenes montados, fichas con
-                  taxonomía completa, rareza y ecología. Explora la lámina, amplía tu caja de
-                  colección y anota tus avistamientos en el cuaderno de campo.
+                <p className="text-[15px] leading-relaxed text-bone/80">
+                  Las especies más observadas del planeta, orden por orden, cargadas en directo
+                  desde la API de iNaturalist: linaje taxonómico completo, notas de Wikipedia,
+                  enlaces a GBIF y EOL, y fotografías de naturalistas con su licencia. Fija tus
+                  especímenes en la caja y anota avistamientos en el cuaderno.
                 </p>
               </div>
 
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <a
-                  href="#coleccion"
+                  href="#atlas"
                   className="group flex items-center gap-3 border border-amber bg-amber px-6 py-3 text-sm font-bold tracking-[0.18em] text-ink uppercase transition-all hover:bg-honey hover:shadow-[0_10px_36px_rgba(229,168,59,0.25)]"
                 >
-                  Explorar la lámina
+                  Explorar el atlas
                   <svg viewBox="0 0 16 16" className="h-4 w-4 transition-transform group-hover:translate-x-1" stroke="currentColor" fill="none" strokeWidth="1.8">
                     <path d="M2 8h11M9 3.5 13.5 8 9 12.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -401,14 +440,14 @@ export default function App() {
                 </a>
               </div>
 
-              <div className="mt-10 flex flex-wrap gap-x-8 gap-y-2 text-xs text-bone/55">
-                <span><strong className="text-amber">1,05 M</strong> especies descritas</span>
-                <span><strong className="text-amber">~80 %</strong> de los animales conocidos</span>
-                <span><strong className="text-amber">8</strong> órdenes en esta lámina</span>
+              <div className="mt-10 grid max-w-lg grid-cols-3 gap-6">
+                <StatBlock target={cards.length} label="Especies en pantalla" sub={loading ? "cargando…" : "de la última consulta"} />
+                <StatBlock target={totalObs} label="Observaciones sumadas" sub="registros verificados" />
+                <StatBlock target={orders.length || 0} label="Órdenes de Insecta" sub="índice taxonómico" />
               </div>
             </div>
 
-            {/* vitrina inclinada */}
+            {/* especímenes destacados en vivo */}
             <div className="relative hidden lg:col-span-5 lg:block">
               <svg
                 viewBox="0 0 200 200"
@@ -434,50 +473,69 @@ export default function App() {
                 })}
               </svg>
 
-              <div className="relative h-[440px]">
-                {featured.map((s, i) => {
-                  const layout = [
-                    { cls: "top-0 right-6 w-56", tilt: "-4deg" },
-                    { cls: "top-36 left-0 w-60", tilt: "3deg" },
-                    { cls: "bottom-0 right-0 w-52", tilt: "-2deg" },
-                  ][i];
-                  return (
-                    <button
-                      key={s.id}
-                      onClick={() => setActive(s)}
-                      className={`float-slow pin absolute border border-moss bg-pine/95 p-4 text-left shadow-[0_22px_50px_rgba(0,0,0,0.5)] transition-colors hover:border-amber/70 ${layout.cls}`}
-                      style={{ "--tilt": layout.tilt, animationDelay: `${i * 0.9}s` } as React.CSSProperties}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="bg-pingrid flex h-16 w-16 shrink-0 items-center justify-center border border-moss/70 bg-fern/50">
-                          <OrderGlyph k={s.orderKey} className="h-11 w-11" />
-                        </span>
-                        <span>
-                          <span className="block font-display text-base leading-tight font-bold text-parch">
-                            {s.name}
-                          </span>
-                          <span className="font-display text-sm italic" style={{ color: s.accent }}>
-                            {s.latin}
-                          </span>
-                          <span className="mt-0.5 block text-[10px] tracking-[0.18em] text-sage/80 uppercase">
-                            {s.order} · {fmtMm(s.sizeMm)}
-                          </span>
-                        </span>
+              <div className="relative h-[460px]">
+                {loading && heroCards.length === 0
+                  ? [0, 1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className={`pin absolute overflow-hidden border border-moss bg-pine/95 shadow-[0_22px_50px_rgba(0,0,0,0.5)] ${
+                          ["top-0 right-6 w-56", "top-40 left-0 w-60", "bottom-0 right-0 w-52"][i]
+                        }`}
+                      >
+                        <div className="shimmer aspect-[4/3]" />
+                        <div className="space-y-2 p-3">
+                          <div className="shimmer h-3.5 w-3/4" />
+                          <div className="shimmer h-3 w-1/2" />
+                        </div>
                       </div>
-                    </button>
-                  );
-                })}
+                    ))
+                  : heroCards.map((s, i) => {
+                      const layout = [
+                        { cls: "top-0 right-6 w-56", tilt: "-4deg" },
+                        { cls: "top-40 left-0 w-60", tilt: "3deg" },
+                        { cls: "bottom-0 right-0 w-52", tilt: "-2deg" },
+                      ][i] ?? { cls: "top-0 left-0 w-52", tilt: "0deg" };
+                      return (
+                        <button
+                          key={s.id}
+                          onClick={() => setActive(s)}
+                          className={`float-slow pin group absolute overflow-hidden border border-moss bg-pine/95 text-left shadow-[0_22px_50px_rgba(0,0,0,0.5)] transition-colors hover:border-amber/70 ${layout.cls}`}
+                          style={{ "--tilt": layout.tilt, animationDelay: `${i * 0.9}s` } as CSSProperties}
+                        >
+                          <div className="relative aspect-[4/3] overflow-hidden">
+                            <img
+                              src={s.photoUrl!}
+                              alt={s.latin}
+                              loading="lazy"
+                              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-ink/85 to-transparent" />
+                            <span className="absolute top-2 left-2 border border-bone/25 bg-ink/70 px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.16em] text-bone uppercase">
+                              {s.orderName}
+                            </span>
+                          </div>
+                          <div className="p-3">
+                            <span className="block font-display text-base leading-tight font-bold text-parch italic">
+                              {s.latin}
+                            </span>
+                            <span className="mt-0.5 block text-[10px] tracking-[0.16em] text-sage uppercase">
+                              {fmtCompact(s.observations)} observaciones
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
               </div>
             </div>
           </div>
 
-          {/* marquesina de nomenclatura */}
+          {/* marquesina de nomenclatura (en vivo) */}
           <div className="border-y border-moss/60 bg-pine/70 py-3 backdrop-blur-sm">
             <div className="marquee-track flex w-max items-center gap-8 pr-8">
-              {[...latinNames, ...latinNames].map((n, i) => (
+              {[...marqueeNames, ...marqueeNames].map((n, i) => (
                 <span
                   key={`${n}-${i}`}
-                  aria-hidden={i >= latinNames.length}
+                  aria-hidden={i >= marqueeNames.length}
                   className="flex items-center gap-8 font-display text-lg whitespace-nowrap text-bone/70 italic"
                 >
                   {n}
@@ -490,36 +548,24 @@ export default function App() {
           </div>
         </section>
 
-        {/* ---------- cifras ---------- */}
-        <section id="cifras" className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-          <Reveal>
-            <div className="grid gap-8 border-y border-moss/60 py-8 sm:grid-cols-2 lg:grid-cols-4">
-              <StatBlock target={ORDERS.length} label="Órdenes representados" sub="De los ~30 descritos" />
-              <StatBlock target={SPECIMENS.length} label="Especímenes en lámina" sub="Montados y etiquetados" />
-              <StatBlock target={170} suffix=" mm" label="Longitud récord" sub="Dynastes hercules" />
-              <StatBlock target={1050000} label="Especies descritas" sub="La clase más diversa del reino animal" />
-            </div>
-          </Reveal>
-        </section>
-
-        {/* ---------- colección ---------- */}
-        <section id="coleccion" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        {/* ---------- atlas ---------- */}
+        <section id="atlas" className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
           <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-[11px] font-bold tracking-[0.3em] text-sage uppercase">
-                Gabinete principal
+                Sistemática en directo
               </p>
               <h2 className="mt-1 font-display text-4xl font-black text-parch sm:text-5xl">
-                La colección<span className="text-amber">.</span>
+                El atlas<span className="text-amber">.</span>
               </h2>
             </div>
             <p className="max-w-sm text-sm text-bone/60">
-              Filtra por orden, busca por nombre vulgar o científico y fija tus especímenes
-              favoritos en la caja. Todo queda guardado en este navegador.
+              Especies con más observaciones verificadas, filtradas por orden. Busca por nombre
+              científico o vulgar; cada ficha abre la taxonomía completa.
             </p>
           </Reveal>
 
-          {/* barra de herramientas */}
+          {/* barra de trabajo */}
           <Reveal delay={80} className="label-frame mb-8 bg-pine/70 p-4">
             <div className="flex flex-wrap items-center gap-3">
               <label className="relative min-w-56 flex-1 sm:max-w-xs">
@@ -530,85 +576,232 @@ export default function App() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Buscar especie, familia, orden…"
+                  placeholder="Buscar en la API:Apis, Papilio, libélula…"
                   className="w-full border border-moss bg-ink/80 py-2.5 pr-3 pl-9 text-sm text-bone placeholder:text-bone/35 focus:border-amber"
-                  aria-label="Buscar especímenes"
+                  aria-label="Buscar especies en iNaturalist"
                 />
               </label>
 
-              <div className="flex flex-wrap gap-1.5">
-                {["Todos", ...ORDERS].map((o) => {
-                  const activeChip = orderFilter === o;
-                  const count = o === "Todos" ? SPECIMENS.length : ORDER_COUNTS.find((c) => c.order === o)?.count;
-                  return (
-                    <button
-                      key={o}
-                      onClick={() => setOrderFilter(o)}
-                      className={`border px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase transition-all ${
-                        activeChip
-                          ? "border-amber bg-amber text-ink"
-                          : "border-moss text-sage hover:border-amber/50 hover:text-amber"
-                      }`}
-                    >
-                      {o} <span className={activeChip ? "opacity-70" : "opacity-50"}>{count}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <label className="ml-auto flex items-center gap-2 text-[11px] font-semibold tracking-[0.16em] text-sage uppercase">
+              <label className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.16em] text-sage uppercase">
                 Ordenar
                 <select
                   value={sortKey}
                   onChange={(e) => setSortKey(e.target.value as SortKey)}
                   className="border border-moss bg-ink/80 px-2 py-2 text-xs text-bone normal-case focus:border-amber"
                 >
+                  <option value="obs">Observaciones</option>
                   <option value="name">Nombre A–Z</option>
-                  <option value="size">Tamaño (mayor)</option>
-                  <option value="rarity">Rareza</option>
-                  <option value="year">Año de descripción</option>
                 </select>
               </label>
+
+              <button
+                onClick={() => refresh(activeOrder, query)}
+                disabled={loading}
+                className="flex items-center gap-2 border border-moss px-3 py-2.5 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:border-amber/60 hover:text-amber disabled:opacity-50"
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                >
+                  <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 1.5v3h-3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                {loading ? "Consultando…" : "Actualizar"}
+              </button>
+
+              {lastUpdate && !loading && (
+                <span className="text-[11px] text-bone/45 tabular-nums">
+                  última consulta ·{" "}
+                  {new Date(lastUpdate).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                </span>
+              )}
+            </div>
+
+            {/* chips de órdenes */}
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <button
+                onClick={() => handleOrder(null)}
+                className={`border px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase transition-all ${
+                  activeOrder === null && !query
+                    ? "border-amber bg-amber text-ink"
+                    : "border-moss text-sage hover:border-amber/50 hover:text-amber"
+                }`}
+              >
+                Insecta · todos
+              </button>
+              {orders.slice(0, 11).map((o) => {
+                const isActive = activeOrder === o.id && !query;
+                return (
+                  <button
+                    key={o.id}
+                    onClick={() => handleOrder(o.id)}
+                    className={`border px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase transition-all ${
+                      isActive
+                        ? "border-amber bg-amber text-ink"
+                        : "border-moss text-sage hover:border-amber/50 hover:text-amber"
+                    }`}
+                  >
+                    {o.name}
+                  </button>
+                );
+              })}
+              {orders.length === 0 && !loading && (
+                <span className="px-1 py-1.5 text-[11px] text-bone/45 italic">
+                  Índice de órdenes no disponible sin conexión
+                </span>
+              )}
             </div>
           </Reveal>
 
-          {filtered.length > 0 ? (
+          {/* rejilla */}
+          {loading ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filtered.map((s, i) => (
-                <Reveal key={s.id} delay={(i % 4) * 60} as="div" className="h-full">
-                  <SpecimenCard
-                    s={s}
-                    collected={collection.includes(s.id)}
-                    onOpen={() => setActive(s)}
-                    onCollect={() => toggleCollect(s.id)}
+              {Array.from({ length: 12 }, (_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : sortedCards.length > 0 ? (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {sortedCards.map((c, i) => (
+                <Reveal key={c.id} delay={(i % 4) * 60} className="h-full">
+                  <TaxonCard
+                    t={c}
+                    collected={Boolean(collection[c.id])}
+                    onOpen={() => setActive(c)}
+                    onCollect={() => toggleCollect(c)}
                   />
                 </Reveal>
               ))}
             </div>
           ) : (
-            <Reveal className="label-frame flex flex-col items-center gap-4 bg-pine/60 px-6 py-16 text-center">
-              <OrderGlyph k="leaf" className="h-16 w-16 text-moss" />
-              <p className="font-display text-2xl text-parch italic">
-                Ningún especimen bajo esta lupa…
-              </p>
-              <p className="max-w-sm text-sm text-bone/60">
-                Ajusta la búsqueda o limpia los filtros: la lámina completa aguarda en el cajón.
-              </p>
-              <button
-                onClick={() => {
-                  setQuery("");
-                  setOrderFilter("Todos");
-                }}
-                className="border border-amber/70 px-5 py-2 text-xs font-bold tracking-[0.2em] text-amber uppercase transition-colors hover:bg-amber hover:text-ink"
-              >
-                Limpiar filtros
-              </button>
-            </Reveal>
+            <div className="label-frame flex flex-col items-center gap-4 bg-pine/60 px-6 py-16 text-center">
+              {query ? (
+                <>
+                  <OrderGlyph k="leaf" className="h-16 w-16 text-moss" />
+                  <p className="font-display text-2xl text-parch italic">
+                    La lupa no encontró «{query}» entre los hexápodos…
+                  </p>
+                  <button
+                    onClick={() => setQuery("")}
+                    className="border border-amber/70 px-5 py-2 text-xs font-bold tracking-[0.2em] text-amber uppercase transition-colors hover:bg-amber hover:text-ink"
+                  >
+                    Limpiar búsqueda
+                  </button>
+                </>
+              ) : (
+                <>
+                  <svg viewBox="0 0 48 48" className="h-16 w-16 text-rust" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                    <path d="M8 24a16 16 0 0 1 27-11M40 24a16 16 0 0 1-27 11" />
+                    <path d="M35 9v5h-5M13 39v-5h5" strokeLinejoin="round" />
+                    <path d="M19 21h10M19 27h6" />
+                  </svg>
+                  <p className="font-display text-2xl text-parch italic">
+                    La expedición perdió señal con iNaturalist.
+                  </p>
+                  <p className="max-w-md text-sm text-bone/60">
+                    Puede ser un corte de red o un límite temporal de la API. Reintenta la
+                    consulta o abre el cajón local con catorce especímenes curados.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <button
+                      onClick={() => refresh(activeOrder, "")}
+                      className="border border-amber/70 px-5 py-2 text-xs font-bold tracking-[0.2em] text-amber uppercase transition-colors hover:bg-amber hover:text-ink"
+                    >
+                      Reintentar consulta
+                    </button>
+                    <button
+                      onClick={handleLocalMode}
+                      className="border border-moss px-5 py-2 text-xs font-bold tracking-[0.2em] text-sage uppercase transition-colors hover:border-sage hover:text-parch"
+                    >
+                      Abrir cajón local
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </section>
 
+        {/* ---------- caja de colección ---------- */}
+        <section id="caja" className="relative mt-6 border-t border-moss/60 bg-pine/40">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+            <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-bold tracking-[0.3em] text-sage uppercase">
+                  Tu gabinete personal
+                </p>
+                <h2 className="mt-1 font-display text-4xl font-black text-parch sm:text-5xl">
+                  Caja de colección<span className="text-amber">.</span>
+                </h2>
+              </div>
+              <p className="max-w-sm text-sm text-bone/60">
+                Cada espécimen «colectado» queda fijado con su alfiler en este navegador — sin
+                cuenta, sin nube, solo ciencia de bolsillo.
+              </p>
+            </Reveal>
+
+            {collectionList.length === 0 ? (
+              <Reveal className="label-frame flex flex-col items-center gap-3 bg-ink/50 px-6 py-14 text-center">
+                <PinMark className="h-12 w-12 text-moss" />
+                <p className="font-display text-xl text-bone/70 italic">
+                  La caja está vacía: ningún alfiler clavado todavía.
+                </p>
+                <a
+                  href="#atlas"
+                  className="mt-2 border border-amber/70 px-5 py-2 text-xs font-bold tracking-[0.2em] text-amber uppercase transition-colors hover:bg-amber hover:text-ink"
+                >
+                  Ir al atlas
+                </a>
+              </Reveal>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                {collectionList.map((sp, i) => (
+                  <Reveal key={sp.id} delay={(i % 6) * 50} className="h-full">
+                    <div className="pin group relative h-full border border-amber/40 bg-pine pt-2 transition-all hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
+                      <div className="relative aspect-square overflow-hidden border-b border-moss/70 bg-fern/40">
+                        {sp.photoUrl ? (
+                          <img
+                            src={sp.photoUrl}
+                            alt={sp.latin}
+                            loading="lazy"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="bg-pingrid flex h-full items-center justify-center">
+                            <OrderGlyph k="beetle" className="h-14 w-14 text-bone/70" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <p className="truncate font-display text-sm font-bold text-parch italic">{sp.latin}</p>
+                        <p className="truncate text-[10px] tracking-[0.14em] text-sage uppercase">
+                          {sp.orderName}
+                          {sp.common ? ` · ${sp.common}` : ""}
+                        </p>
+                        <button
+                          onClick={() => {
+                            const next = { ...collection };
+                            delete next[sp.id];
+                            setCollection(next);
+                            showToast(`${sp.latin} devuelto al cajón`);
+                          }}
+                          className="mt-2 w-full border border-moss py-1 text-[9px] font-bold tracking-[0.16em] text-bone/55 uppercase transition-colors hover:border-rust/70 hover:text-rust"
+                        >
+                          Desfijar
+                        </button>
+                      </div>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* ---------- cuaderno de campo ---------- */}
-        <section id="cuaderno" className="relative mt-10 border-t border-moss/60 bg-pine/50">
+        <section id="cuaderno" className="relative border-t border-moss/60 bg-pine/60">
           <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-5">
             <Reveal className="lg:col-span-2">
               <p className="text-[11px] font-bold tracking-[0.3em] text-sage uppercase">
@@ -618,28 +811,50 @@ export default function App() {
                 Cuaderno de campo<span className="text-amber">.</span>
               </h2>
               <p className="mt-4 max-w-md text-sm leading-relaxed text-bone/70">
-                Cada avistamiento cuenta: especie, localidad, fecha y una nota de comportamiento.
-                Las anotaciones se guardan en tu navegador, como un diario de expedición que
-                nadie más puede abrir.
+                Registra cada encuentro: especie, localidad, fecha y comportamiento. La lista de
+                especies se alimenta del atlas en vivo; tus anotaciones viven solo en este
+                navegador.
               </p>
 
               <form onSubmit={addSighting} className="label-frame mt-7 space-y-4 bg-ink/60 p-5">
+                <datalist id="inat-species">
+                  {suggestionNames.map((n) => (
+                    <option key={n} value={n} />
+                  ))}
+                </datalist>
+                <label className="block">
+                  <span className="mb-1.5 block text-[10px] font-bold tracking-[0.2em] text-sage uppercase">
+                    Especie *
+                  </span>
+                  <input
+                    list="inat-species"
+                    value={fSpecies}
+                    onChange={(e) => {
+                      setFSpecies(e.target.value);
+                      if (fError) setFError("");
+                    }}
+                    placeholder="Empieza a escribir: Apis, Vanessa…"
+                    className={`w-full border bg-pine px-3 py-2.5 text-sm text-bone italic placeholder:text-bone/35 focus:border-amber ${
+                      fError && !fSpecies.trim() ? "border-rust" : "border-moss"
+                    }`}
+                  />
+                </label>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
                     <span className="mb-1.5 block text-[10px] font-bold tracking-[0.2em] text-sage uppercase">
-                      Especie
+                      Localidad *
                     </span>
-                    <select
-                      value={fInsect}
-                      onChange={(e) => setFInsect(e.target.value)}
-                      className="w-full border border-moss bg-pine px-3 py-2.5 text-sm text-bone focus:border-amber"
-                    >
-                      {SPECIMENS.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name} — {s.latin}
-                        </option>
-                      ))}
-                    </select>
+                    <input
+                      value={fPlace}
+                      onChange={(e) => {
+                        setFPlace(e.target.value);
+                        if (fError) setFError("");
+                      }}
+                      placeholder="p. ej. Robledal de Sierra Morena"
+                      className={`w-full border bg-pine px-3 py-2.5 text-sm text-bone placeholder:text-bone/35 focus:border-amber ${
+                        fError && !fPlace.trim() ? "border-rust" : "border-moss"
+                      }`}
+                    />
                   </label>
                   <label className="block">
                     <span className="mb-1.5 block text-[10px] font-bold tracking-[0.2em] text-sage uppercase">
@@ -653,23 +868,7 @@ export default function App() {
                     />
                   </label>
                 </div>
-                <label className="block">
-                  <span className="mb-1.5 block text-[10px] font-bold tracking-[0.2em] text-sage uppercase">
-                    Localidad *
-                  </span>
-                  <input
-                    value={fPlace}
-                    onChange={(e) => {
-                      setFPlace(e.target.value);
-                      if (fError) setFError("");
-                    }}
-                    placeholder="p. ej. Robledal de Sierra Morena, km 4"
-                    className={`w-full border bg-pine px-3 py-2.5 text-sm text-bone placeholder:text-bone/35 focus:border-amber ${
-                      fError ? "border-rust" : "border-moss"
-                    }`}
-                  />
-                  {fError && <span className="mt-1 block text-xs text-rust">{fError}</span>}
-                </label>
+                {fError && <p className="text-xs text-rust">{fError}</p>}
                 <label className="block">
                   <span className="mb-1.5 block text-[10px] font-bold tracking-[0.2em] text-sage uppercase">
                     Nota de campo
@@ -694,13 +893,10 @@ export default function App() {
             <Reveal delay={120} className="lg:col-span-3">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display text-xl font-bold text-parch">
-                  Anotaciones{" "}
-                  <span className="text-amber">({sightings.length})</span>
+                  Anotaciones <span className="text-amber">({sightings.length})</span>
                 </h3>
                 {sightings.length > 0 && (
-                  <span className="text-[11px] tracking-[0.2em] text-sage/70 uppercase">
-                    Guardado local
-                  </span>
+                  <span className="text-[11px] tracking-[0.2em] text-sage/70 uppercase">Guardado local</span>
                 )}
               </div>
 
@@ -711,9 +907,7 @@ export default function App() {
                     <path d="M10 6a4 4 0 0 1 4 4v30" />
                     <path d="M20 16h10M20 22h10M20 28h6" />
                   </svg>
-                  <p className="font-display text-xl text-bone/70 italic">
-                    El cuaderno espera su primera entrada.
-                  </p>
+                  <p className="font-display text-xl text-bone/70 italic">El cuaderno espera su primera entrada.</p>
                   <p className="max-w-xs text-xs text-bone/50">
                     Sal al prado con la lupa: cualquier encuentro de seis patas merece una línea.
                   </p>
@@ -721,7 +915,6 @@ export default function App() {
               ) : (
                 <ul className="space-y-3">
                   {sightings.map((sg) => {
-                    const sp = SPECIMENS.find((s) => s.id === sg.insectId);
                     const d = new Date(sg.date + "T00:00:00");
                     return (
                       <li
@@ -729,20 +922,13 @@ export default function App() {
                         className="group flex gap-4 border border-moss/70 bg-pine/80 p-4 transition-colors hover:border-amber/50"
                       >
                         <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center border border-moss/70 bg-ink/60">
-                          <span className="font-display text-lg leading-none font-black text-amber">
-                            {d.getDate()}
-                          </span>
+                          <span className="font-display text-lg leading-none font-black text-amber">{d.getDate()}</span>
                           <span className="text-[9px] tracking-[0.14em] text-sage uppercase">
                             {d.toLocaleDateString("es-ES", { month: "short" }).replace(".", "")}
                           </span>
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-display text-base font-bold text-parch">
-                            {sp ? sp.name : "Especie sin determinar"}{" "}
-                            <span className="font-display text-sm font-normal italic" style={{ color: sp?.accent ?? "#a3c293" }}>
-                              {sp?.latin ?? "Insecta sp."}
-                            </span>
-                          </p>
+                          <p className="font-display text-base font-bold text-parch italic">{sg.species}</p>
                           <p className="mt-0.5 flex items-center gap-1.5 text-xs text-sage">
                             <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.5">
                               <path d="M8 14s5-4.6 5-8.5A5 5 0 0 0 3 5.5C3 9.4 8 14 8 14z" />
@@ -770,8 +956,8 @@ export default function App() {
           </div>
         </section>
 
-        {/* ---------- pie ---------- */}
-        <footer className="relative overflow-hidden border-t border-moss/60 bg-ink">
+        {/* ---------- pie con fuentes académicas ---------- */}
+        <footer id="fuentes" className="relative overflow-hidden border-t border-moss/60 bg-ink">
           <p
             aria-hidden="true"
             className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 font-display text-[22vw] leading-none font-black whitespace-nowrap text-fern/40 select-none"
@@ -785,55 +971,60 @@ export default function App() {
                 <span className="font-display text-xl font-black text-parch">INSECTA</span>
               </div>
               <p className="mt-3 max-w-xs text-sm text-bone/60">
-                Lámina digital de entomología: especímenes, taxonomía y cuaderno de campo en un
-                solo cajón. Compilada a partir del repositorio{" "}
-                <span className="text-amber">SysJoL/insecta-app-web</span>.
+                Atlas entomológico de ciencia abierta: datos en vivo, fotografías con licencia y
+                referencias cruzadas a las grandes bases de biodiversidad.
+              </p>
+              <p className="mt-4 text-xs text-bone/45">
+                Compilado a partir del repositorio <span className="text-amber">SysJoL/insecta-app-web</span>.
               </p>
             </div>
+
             <div>
-              <p className="mb-3 text-[11px] font-bold tracking-[0.26em] text-sage uppercase">
-                Órdenes en lámina
-              </p>
-              <ul className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
-                {ORDER_COUNTS.map((o) => (
-                  <li key={o.order} className="flex justify-between border-b border-moss/40 pb-1 text-bone/75">
-                    {o.order}
-                    <span className="text-amber">{o.count}</span>
+              <p className="mb-3 text-[11px] font-bold tracking-[0.26em] text-sage uppercase">Fuentes de datos</p>
+              <ul className="space-y-2.5 text-sm text-bone/75">
+                {[
+                  { n: "iNaturalist API v1", d: "especies, conteos y fotografías", u: "https://www.inaturalist.org/pages/api+reference" },
+                  { n: "Wikipedia REST API", d: "resúmenes enciclopédicos en español", u: "https://es.wikipedia.org/api/rest_v1" },
+                  { n: "GBIF", d: "referencia global de biodiversidad", u: "https://www.gbif.org/es" },
+                  { n: "Encyclopedia of Life", d: "fichas de historia natural", u: "https://eol.org" },
+                ].map((f) => (
+                  <li key={f.n}>
+                    <a href={f.u} target="_blank" rel="noreferrer" className="group flex items-start gap-2 transition-colors hover:text-amber">
+                      <span className="mt-1 text-amber"><ExternalLinkIcon /></span>
+                      <span>
+                        <span className="font-semibold text-parch group-hover:text-amber">{f.n}</span>
+                        <span className="block text-xs text-bone/50">{f.d}</span>
+                      </span>
+                    </a>
                   </li>
                 ))}
               </ul>
             </div>
+
             <div>
-              <p className="mb-3 text-[11px] font-bold tracking-[0.26em] text-sage uppercase">
-                Estado de conservación
+              <p className="mb-3 text-[11px] font-bold tracking-[0.26em] text-sage uppercase">Créditos y licencias</p>
+              <p className="text-sm leading-relaxed text-bone/70">
+                Las fotografías pertenecen a los observadores de la comunidad iNaturalist y se
+                muestran respetando su licencia Creative Commons (visible en cada tarjeta y
+                ficha). Los conteos corresponden a observaciones verificadas por la comunidad.
               </p>
-              <ul className="space-y-1.5 text-sm text-bone/75">
-                {Object.entries(STATUS_META).map(([code, m]) => (
-                  <li key={code} className="flex items-center gap-2.5">
-                    <span className={`border px-1.5 py-0.5 text-[10px] tracking-widest ${
-                      m.color === "sage" ? "border-sage/50 text-sage" : m.color === "amber" ? "border-amber/60 text-amber" : "border-rust/60 text-rust"
-                    }`}>
-                      {code}
-                    </span>
-                    {m.label}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-6 text-xs text-bone/45">
-                React · Vite · Tailwind — datos de campo con fines divulgativos.
+              <p className="mt-4 text-sm text-bone/70">
+                Sin conexión, el atlas se apoya en un <span className="text-amber">cajón local</span> con
+                catorce especímenes curados e ilustración propia.
               </p>
+              <p className="mt-6 text-xs text-bone/45">React · Vite · Tailwind — uso divulgativo y académico.</p>
             </div>
           </div>
           <div className="relative border-t border-moss/50 py-4 text-center text-[11px] tracking-[0.24em] text-bone/40 uppercase">
-            Vol. IV · Hecho con lupa y paciencia
+            Vol. IV · Hecho con lupa, API y paciencia
           </div>
         </footer>
       </div>
 
       {/* ---------- modal ---------- */}
-      <SpecimenModal
-        specimen={active}
-        collected={active ? collection.includes(active.id) : false}
+      <TaxonModal
+        taxon={active}
+        collected={active ? Boolean(collection[active.id]) : false}
         onClose={() => setActive(null)}
         onToggleCollect={toggleCollect}
       />

@@ -226,6 +226,26 @@ body {
   z-index: 5;
 }
 
+/* shimmer de carga */
+@keyframes shimmer-x {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+.shimmer {
+  background: linear-gradient(
+    100deg,
+    rgba(163, 194, 147, 0.08) 40%,
+    rgba(229, 168, 59, 0.2) 50%,
+    rgba(163, 194, 147, 0.08) 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-x 1.4s linear infinite;
+}
+
 /* stat bar fill */
 @keyframes bar-fill {
   from {

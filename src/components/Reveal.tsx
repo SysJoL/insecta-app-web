@@ -41,13 +41,18 @@ export function Reveal({ children, delay = 0, className = "", as = "div" }: Reve
   );
 }
 
-/** Cuenta ascendente cuando el elemento entra en pantalla. */
+/** Cuenta ascendente cuando el elemento entra en pantalla; se reinicia si el objetivo cambia. */
 export function useCountUp(target: number, duration = 1400) {
   const ref = useRef<HTMLSpanElement | null>(null);
   const [value, setValue] = useState(0);
   const started = useRef(false);
+  const lastTarget = useRef(target);
 
   useEffect(() => {
+    if (lastTarget.current !== target) {
+      lastTarget.current = target;
+      started.current = false;
+    }
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
