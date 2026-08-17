@@ -259,7 +259,7 @@ export default function Quiz({ profile, onProfileUpdate, quizPool }: Props) {
       </AnimatePresence>
 
       {view !== "hub" && createPortal(
-        <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-ink">
+        <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-ink [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6">
             <div className="mb-6">
               <button

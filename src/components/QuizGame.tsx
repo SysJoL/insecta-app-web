@@ -688,16 +688,16 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
           {/* Specimen photo for daily/expedition/speed modes */}
           {q.displayLabel && !q.glyphKey && (
             <div className="mb-6 flex justify-center">
-              <div className="label-frame bg-pine/80 overflow-hidden" style={{ maxWidth: 360, width: "100%" }}>
+              <div className="label-frame bg-pine/80 overflow-hidden" style={{ width: 220, height: 220 }}>
                 {questionImage ? (
                   <img
                     src={questionImage}
                     alt={q.displayLabel}
-                    className="h-64 sm:h-80 w-full object-cover"
+                    className="h-full w-full object-cover"
                     loading="eager"
                   />
                 ) : (
-                  <div className="flex h-64 sm:h-80 w-full items-center justify-center shimmer">
+                  <div className="flex h-full w-full items-center justify-center shimmer">
                     <span className="text-[10px] font-bold tracking-[0.14em] text-sage/50 uppercase">
                       Cargando espécimen…
                     </span>
