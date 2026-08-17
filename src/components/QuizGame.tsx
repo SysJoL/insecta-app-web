@@ -10,6 +10,9 @@ import {
   calcCoins,
   getTimerDuration,
   trackMastery,
+  saveDailyResult,
+  saveExpeditionState,
+  resetExpeditionState,
   type PlayerProfile,
 } from "../lib/quizEngine";
 import QuizResults from "./QuizResults";
@@ -46,6 +49,8 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [timeLeft, setTimeLeft] = useState(100); // percentage
   const [responseTimes, setResponseTimes] = useState<number[]>([]);
+  const [lives, setLives] = useState(3);
+  const [stationIdx, setStationIdx] = useState(0);
 
   const questionStartTime = useRef(0);
   const timerRef = useRef<number | undefined>(undefined);
@@ -55,6 +60,11 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
   useEffect(() => {
     const qs = generateQuestions(mode);
     setQuestions(qs);
+    if (mode === "daily") {
+      setPhase("playing");
+      questionStartTime.current = Date.now();
+      return;
+    }
 
     // Countdown
     let idx = 0;
@@ -79,6 +89,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
   // Timer logic
   useEffect(() => {
     if (phase !== "playing" || !questions[currentQ]) return;
+    if (mode === "daily") return; // no timer for daily
 
     const duration = getTimerDuration(mode, streak);
     const interval = 50;
@@ -128,6 +139,13 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
         setTotalCoins((c) => c + coinsEarned);
       }
 
+      // Expedition lives
+      let newLives = lives;
+      if (mode === "expedition" && !isCorrect) {
+        newLives = lives - 1;
+        setLives(newLives);
+      }
+
       // Track mastery for this specimen
       const { profile: profileAfterMastery, justMastered } = trackMastery(
         profile,
@@ -135,15 +153,12 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
         isCorrect
       );
       if (justMastered) {
-        // Store the mastery toast info to show after feedback
         window.setTimeout(() => {
-          // Use a custom event to trigger toast in App
           window.dispatchEvent(
             new CustomEvent("insecta:mastery", { detail: { specimenId: q.specimenId } })
           );
         }, 2600);
       }
-      // Update profile in background (mastery counter)
       onProfileUpdate(profileAfterMastery);
 
       setResponseTimes((prev) => [...prev, responseTime]);
@@ -161,11 +176,104 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
       // Auto-advance after 2.5s
       feedbackTimerRef.current = window.setTimeout(() => {
         setFeedback(null);
+
+        // Daily mode: complete after single question
+        if (mode === "daily") {
+          saveDailyResult(isCorrect);
+          const xpEarned = (isCorrect ? 1 : 0) * 100;
+          const updated = {
+            ...profileAfterMastery,
+            totalCorrect: profileAfterMastery.totalCorrect + (isCorrect ? 1 : 0),
+            totalAnswered: profileAfterMastery.totalAnswered + 1,
+            bestStreak: Math.max(profileAfterMastery.bestStreak, newBestStreak),
+            xp: profileAfterMastery.xp + xpEarned,
+            coins: profileAfterMastery.coins + coinsEarned,
+            gamesPlayed: profileAfterMastery.gamesPlayed + 1,
+            modeBest: {
+              ...profileAfterMastery.modeBest,
+              daily: Math.max(profileAfterMastery.modeBest.daily ?? 0, isCorrect ? 1 : 0),
+            },
+          };
+          onProfileUpdate(updated);
+          setPhase("results");
+          return;
+        }
+
+        // Expedition mode: check lives
+        if (mode === "expedition") {
+          if (newLives <= 0) {
+            // Failed — reset expedition
+            const finalCorrect = isCorrect ? correctCount + 1 : correctCount;
+            const finalScore = score + pointsEarned;
+            const xpEarned = finalCorrect * 100 + newBestStreak * 50;
+            const coinsFinal = totalCoins + coinsEarned;
+            const updated = {
+              ...profileAfterMastery,
+              totalCorrect: profileAfterMastery.totalCorrect + finalCorrect,
+              totalAnswered: profileAfterMastery.totalAnswered + (stationIdx + 1),
+              bestStreak: Math.max(profileAfterMastery.bestStreak, newBestStreak),
+              xp: profileAfterMastery.xp + xpEarned,
+              coins: profileAfterMastery.coins + coinsFinal,
+              gamesPlayed: profileAfterMastery.gamesPlayed + 1,
+              modeBest: {
+                ...profileAfterMastery.modeBest,
+                expedition: Math.max(profileAfterMastery.modeBest.expedition ?? 0, finalScore),
+              },
+            };
+            onProfileUpdate(updated);
+            resetExpeditionState();
+            setPhase("results");
+            return;
+          }
+
+          // Check if expedition complete
+          const nextStation = stationIdx + 1;
+          if (nextStation >= questions.length) {
+            // Expedition complete — bonus!
+            const finalCorrect = isCorrect ? correctCount + 1 : correctCount;
+            const finalScore = score + pointsEarned + 200; // completion bonus
+            const xpEarned = finalCorrect * 100 + newBestStreak * 50 + 100; // bonus XP
+            const coinsFinal = totalCoins + coinsEarned + 5; // bonus coins
+            const updated = {
+              ...profileAfterMastery,
+              totalCorrect: profileAfterMastery.totalCorrect + finalCorrect,
+              totalAnswered: profileAfterMastery.totalAnswered + questions.length,
+              bestStreak: Math.max(profileAfterMastery.bestStreak, newBestStreak),
+              xp: profileAfterMastery.xp + xpEarned,
+              coins: profileAfterMastery.coins + coinsFinal,
+              gamesPlayed: profileAfterMastery.gamesPlayed + 1,
+              modeBest: {
+                ...profileAfterMastery.modeBest,
+                expedition: Math.max(profileAfterMastery.modeBest.expedition ?? 0, finalScore),
+              },
+            };
+            onProfileUpdate(updated);
+            resetExpeditionState();
+            setPhase("results");
+            return;
+          }
+
+          // Next station
+          setStationIdx(nextStation);
+          saveExpeditionState({
+            active: true,
+            lives: newLives,
+            maxLives: 3,
+            stationIdx: nextStation,
+            totalStations: questions.length,
+            score: score + pointsEarned,
+            correctCount: isCorrect ? correctCount + 1 : correctCount,
+          });
+          setCurrentQ((c) => c + 1);
+          setPhase("playing");
+          return;
+        }
+
+        // Normal modes
         if (currentQ + 1 < questions.length) {
           setCurrentQ((c) => c + 1);
           setPhase("playing");
         } else {
-          // Round complete — use profileAfterMastery which has updated counters
           const finalCorrect = isCorrect ? correctCount + 1 : correctCount;
           const finalScore = score + pointsEarned;
           const xpEarned = finalCorrect * 100 + newBestStreak * 50;
@@ -189,7 +297,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
         }
       }, 2500);
     },
-    [questions, currentQ, streak, bestStreak, score, correctCount, totalCoins, profile, mode, onProfileUpdate]
+    [questions, currentQ, streak, bestStreak, score, correctCount, totalCoins, lives, stationIdx, profile, mode, onProfileUpdate]
   );
 
   if (questions.length === 0) return null;
@@ -221,6 +329,80 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
         ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
         : 0;
 
+    // Daily results — custom screen
+    if (mode === "daily") {
+      return (
+        <div className="modal-in mx-auto max-w-md">
+          <div className="label-frame bg-pine/80 p-6 text-center">
+            <p className="text-[10px] font-bold tracking-[0.3em] text-amber uppercase">
+              Desafío Diario
+            </p>
+            <h3 className={`mt-2 font-display text-4xl font-black ${correctCount > 0 ? "text-sage" : "text-rust"}`}>
+              {correctCount > 0 ? "¡Correcto!" : "Incorrecto"}
+            </h3>
+            {correctCount > 0 && (
+              <p className="mt-2 font-display text-xl text-parch">{questions[0]?.displayLabel}</p>
+            )}
+            <p className="mt-3 text-sm text-bone/60">{questions[0]?.explanation}</p>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <button
+              onClick={onHub}
+              className="border border-amber bg-amber py-3 text-xs font-bold tracking-[0.16em] text-ink uppercase transition-all hover:bg-honey"
+            >
+              Volver al museo
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Expedition results — custom screen
+    if (mode === "expedition") {
+      const expeditionComplete = stationIdx >= questions.length - 1 && lives > 0;
+      return (
+        <div className="modal-in mx-auto max-w-md">
+          <div className="label-frame bg-pine/80 p-6 text-center">
+            <p className="text-[10px] font-bold tracking-[0.3em] text-teal uppercase">
+              Expedición
+            </p>
+            <h3 className={`mt-2 font-display text-4xl font-black ${expeditionComplete ? "text-sage" : "text-rust"}`}>
+              {expeditionComplete ? "¡Expedición Completada!" : "Expedición Fallida"}
+            </h3>
+            <p className="mt-2 text-sm text-bone/60">
+              {expeditionComplete
+                ? `Sobreviviste las ${questions.length} estaciones con ${lives} vidas restantes.`
+                : `Caido en la estación ${stationIdx + 1}. Las vidas se agotaron.`}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-px border border-moss/60 bg-moss/60">
+            <StatCell label="Estaciones" value={`${expeditionComplete ? questions.length : stationIdx + 1}/${questions.length}`} />
+            <StatCell label="Vidas" value={`${"❤️".repeat(lives)}${"🖤".repeat(3 - lives)}`} />
+            <StatCell label="Puntuación" value={score.toLocaleString("es-ES")} accent />
+            <StatCell label="Monedas" value={`+${totalCoins} 🪙`} />
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <button
+              onClick={() => {
+                resetExpeditionState();
+                onHub();
+              }}
+              className="border border-amber bg-amber py-3 text-xs font-bold tracking-[0.16em] text-ink uppercase transition-all hover:bg-honey"
+            >
+              Nueva expedición
+            </button>
+            <button
+              onClick={onHub}
+              className="border border-moss py-3 text-xs font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:border-sage hover:text-parch"
+            >
+              Volver al museo
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Normal results
     return (
       <QuizResults
         mode={mode}
@@ -278,6 +460,20 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
           <span className="font-display text-2xl font-black text-amber tabular-nums">
             {score}
           </span>
+          {mode === "expedition" && (
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <span key={i} className={i < lives ? "text-rust" : "text-bone/20"}>
+                  ❤️
+                </span>
+              ))}
+            </div>
+          )}
+          {mode === "daily" && (
+            <span className="border border-amber/40 bg-amber/10 px-2 py-1 text-[10px] font-bold text-amber">
+              📅 Diario
+            </span>
+          )}
           {streak >= 2 && (
             <motion.span
               initial={{ scale: 0 }}
@@ -289,12 +485,14 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
           )}
         </div>
         <span className="text-[11px] font-bold tracking-[0.14em] text-sage uppercase tabular-nums">
-          {currentQ + 1} / {questions.length}
+          {mode === "expedition"
+            ? `Estación ${currentQ + 1}/${questions.length}`
+            : `${currentQ + 1} / ${questions.length}`}
         </span>
       </div>
 
-      {/* Timer bar */}
-      {mode !== "classify-order" && (
+      {/* Timer bar — hidden for daily and classify-order */}
+      {mode !== "classify-order" && mode !== "daily" && (
         <div className="mb-6 h-1.5 bg-ink/80">
           <motion.div
             className={`h-full ${timerColor}`}
@@ -528,6 +726,25 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
           </AnimatePresence>
         </motion.div>
       </AnimatePresence>
+    </div>
+  );
+}
+
+function StatCell({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className="bg-pine/80 px-4 py-3 text-center">
+      <p className="text-[9px] font-bold tracking-[0.2em] text-sage/70 uppercase">{label}</p>
+      <p className={`mt-1 font-display text-xl font-black ${accent ? "text-amber" : "text-parch"}`}>
+        {value}
+      </p>
     </div>
   );
 }

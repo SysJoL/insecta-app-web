@@ -1,6 +1,119 @@
 import type { QuizMode } from "../data/quizBank";
 
 /* ------------------------------------------------------------------ */
+/*  Daily Challenge history                                             */
+/* ------------------------------------------------------------------ */
+
+export const DAILY_HISTORY_KEY = "insecta:daily-history:v1";
+
+export interface DailyHistoryEntry {
+  date: string; // YYYY-MM-DD
+  correct: boolean;
+}
+
+/** Returns today's date as YYYY-MM-DD */
+export function todayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Load daily history from localStorage */
+export function loadDailyHistory(): DailyHistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(DAILY_HISTORY_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+/** Save a daily result */
+export function saveDailyResult(correct: boolean): DailyHistoryEntry[] {
+  const history = loadDailyHistory();
+  const today = todayStr();
+  // Replace if already exists for today
+  const filtered = history.filter((e) => e.date !== today);
+  const updated = [...filtered, { date: today, correct }];
+  localStorage.setItem(DAILY_HISTORY_KEY, JSON.stringify(updated));
+  return updated;
+}
+
+/** Check if daily is already completed today */
+export function isDailyCompleted(): boolean {
+  return loadDailyHistory().some((e) => e.date === todayStr());
+}
+
+/** Get current daily streak (consecutive correct days ending today or yesterday) */
+export function getDailyStreak(history: DailyHistoryEntry[]): number {
+  if (history.length === 0) return 0;
+  const sorted = [...history].sort((a, b) => b.date.localeCompare(a.date));
+  let streak = 0;
+  const today = todayStr();
+  let expected = today;
+  for (const entry of sorted) {
+    if (entry.date === expected && entry.correct) {
+      streak++;
+      // Previous day
+      const d = new Date(expected);
+      d.setDate(d.getDate() - 1);
+      expected = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    } else if (entry.date < expected) {
+      break;
+    }
+  }
+  return streak;
+}
+
+/** Get last 7 days results for calendar display */
+export function getLast7Days(history: DailyHistoryEntry[]): { date: string; correct: boolean | null }[] {
+  const result: { date: string; correct: boolean | null }[] = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const entry = history.find((e) => e.date === dateStr);
+    result.push({ date: dateStr, correct: entry ? entry.correct : null });
+  }
+  return result;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Expedition state                                                    */
+/* ------------------------------------------------------------------ */
+
+export const EXPEDITION_STATE_KEY = "insecta:expedition-state:v1";
+
+export interface ExpeditionState {
+  active: boolean;
+  lives: number;
+  maxLives: number;
+  stationIdx: number;
+  totalStations: number;
+  score: number;
+  correctCount: number;
+}
+
+export function loadExpeditionState(): ExpeditionState {
+  try {
+    const raw = localStorage.getItem(EXPEDITION_STATE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return { active: false, lives: 3, maxLives: 3, stationIdx: 0, totalStations: 5, score: 0, correctCount: 0 };
+}
+
+export function saveExpeditionState(state: ExpeditionState): void {
+  localStorage.setItem(EXPEDITION_STATE_KEY, JSON.stringify(state));
+}
+
+export function resetExpeditionState(): ExpeditionState {
+  const state: ExpeditionState = { active: false, lives: 3, maxLives: 3, stationIdx: 0, totalStations: 5, score: 0, correctCount: 0 };
+  localStorage.setItem(EXPEDITION_STATE_KEY, JSON.stringify(state));
+  return state;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Perfil del jugador (persistido en localStorage)                     */
 /* ------------------------------------------------------------------ */
 
@@ -49,6 +162,8 @@ export const DEFAULT_PROFILE: PlayerProfile = {
     evolution: 0,
     ecosystem: 0,
     cryptid: 0,
+    daily: 0,
+    expedition: 0,
   },
   masteredSpecimens: [],
   masteryCounters: {},
@@ -129,12 +244,14 @@ export function getTimerDuration(mode: QuizMode, streak: number): number {
     evolution: 12000,
     ecosystem: 12000,
     cryptid: 18000,
+    daily: 0, // no timer
+    expedition: 10000,
   };
 
   const base = BASE[mode];
 
   // Reducir tiempo con streak alto (flow state)
-  if (mode === "classify-order") return base; // sin timer en clasificación
+  if (mode === "classify-order" || mode === "daily") return base; // sin timer en clasificación
   if (streak >= 10) return Math.max(base * 0.5, 4000);
   if (streak >= 5) return Math.max(base * 0.7, 5000);
   return base;

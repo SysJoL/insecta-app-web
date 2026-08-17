@@ -14,7 +14,9 @@ export type QuizMode =
   | "taxonomy-chain"
   | "evolution"
   | "ecosystem"
-  | "cryptid";
+  | "cryptid"
+  | "daily"
+  | "expedition";
 
 export interface QuizQuestion {
   question: string;
@@ -112,6 +114,22 @@ export const QUIZ_MODES: QuizModeInfo[] = [
     icon: "🔍",
     description: "Tres pistas críticas: etimología, hábitat y rasgo. ¿Puedes identificar al espécimen antes de que desaparezca?",
     color: "rust",
+  },
+  {
+    id: "daily",
+    name: "Desafío Diario",
+    shortName: "Diario",
+    icon: "📅",
+    description: "Un espécimen misterioso cada día. Sin timer, sin presión — solo tu conocimiento. ¿Acertarás hoy?",
+    color: "amber",
+  },
+  {
+    id: "expedition",
+    name: "Expedición",
+    shortName: "Expedición",
+    icon: "🗺️",
+    description: "5 estaciones, 3 vidas. Cada estación es un reto de entomología. ¿Sobrevivirás al final del camino?",
+    color: "teal",
   },
 ];
 
@@ -761,6 +779,61 @@ export function generateCryptid(): QuizQuestion[] {
   }));
 }
 
+/**
+ * MODO 9: Desafío Diario
+ * Una pregunta al día basada en la fecha — determinística, sin timer
+ */
+export function generateDaily(): QuizQuestion[] {
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+  // Simple hash djb2
+  let hash = 5381;
+  for (let i = 0; i < dateStr.length; i++) {
+    hash = ((hash << 5) + hash + dateStr.charCodeAt(i)) | 0;
+  }
+  const idx = Math.abs(hash) % SPECIMENS.length;
+  const s = SPECIMENS[idx];
+
+  const distractors = pickRandom(SPECIMENS.map((sp) => sp.latin), 3, s.latin);
+  const options = shuffle([s.latin, ...distractors]);
+
+  return [
+    {
+      question: `Desafío Diario — ${dateStr}\n\n¿Qué especie es esta?`,
+      options,
+      correctIndex: options.indexOf(s.latin),
+      explanation: `${s.latin} — ${s.traits[0]}. ${s.desc.slice(0, 100)}…`,
+      displayLabel: s.name,
+      specimenId: s.id,
+    },
+  ];
+}
+
+/**
+ * MODO 10: Expedición
+ * 5 preguntas de velocidad con vidas — sin compras, supervivencia pura
+ */
+export function generateExpedition(): QuizQuestion[] {
+  const allLatin = SPECIMENS.map((s) => s.latin);
+  const questions: QuizQuestion[] = [];
+
+  for (const s of shuffle(SPECIMENS).slice(0, 5)) {
+    const distractors = pickRandom(allLatin, 3, s.latin);
+    const options = shuffle([s.latin, ...distractors]);
+    questions.push({
+      question: s.name,
+      options,
+      correctIndex: options.indexOf(s.latin),
+      explanation: `${s.latin} — ${s.traits[0]}.`,
+      displayLabel: s.name,
+      specimenId: s.id,
+    });
+  }
+
+  return questions;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Router principal                                                    */
 /* ------------------------------------------------------------------ */
@@ -783,6 +856,10 @@ export function generateQuestions(mode: QuizMode): QuizQuestion[] {
       return generateEcosystem();
     case "cryptid":
       return generateCryptid();
+    case "daily":
+      return generateDaily();
+    case "expedition":
+      return generateExpedition();
     default:
       return generateSpeedScientific();
   }

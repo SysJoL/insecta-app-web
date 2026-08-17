@@ -1,7 +1,17 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QUIZ_MODES, type QuizMode } from "../data/quizBank";
-import { getLevel, type PlayerProfile } from "../lib/quizEngine";
+import {
+  getLevel,
+  loadDailyHistory,
+  isDailyCompleted,
+  getDailyStreak,
+  getLast7Days,
+  saveExpeditionState,
+  resetExpeditionState,
+  loadExpeditionState,
+  type PlayerProfile,
+} from "../lib/quizEngine";
 import QuizGame from "./QuizGame";
 
 interface Props {
@@ -9,15 +19,43 @@ interface Props {
   onProfileUpdate: (p: PlayerProfile) => void;
 }
 
-type View = "hub" | "playing";
+type View = "hub" | "playing" | "daily-hub" | "expedition-hub";
+
+const REGULAR_MODES = QUIZ_MODES.filter(
+  (m) => m.id !== "daily" && m.id !== "expedition"
+);
 
 export default function Quiz({ profile, onProfileUpdate }: Props) {
   const [view, setView] = useState<View>("hub");
   const [activeMode, setActiveMode] = useState<QuizMode>("speed-scientific");
   const levelInfo = getLevel(profile.xp);
 
+  const dailyHistory = loadDailyHistory();
+  const dailyCompleted = isDailyCompleted();
+  const dailyStreak = getDailyStreak(dailyHistory);
+  const last7 = getLast7Days(dailyHistory);
+  const expeditionState = loadExpeditionState();
+
   const handleStartMode = (mode: QuizMode) => {
     setActiveMode(mode);
+    setView("playing");
+  };
+
+  const handlePlayDaily = () => {
+    if (dailyCompleted) return;
+    setActiveMode("daily");
+    setView("playing");
+  };
+
+  const handleStartExpedition = () => {
+    resetExpeditionState();
+    setActiveMode("expedition");
+    setView("playing");
+  };
+
+  const handleContinueExpedition = () => {
+    if (!expeditionState.active) return;
+    setActiveMode("expedition");
     setView("playing");
   };
 
@@ -28,7 +66,7 @@ export default function Quiz({ profile, onProfileUpdate }: Props) {
   return (
     <div>
       <AnimatePresence mode="wait">
-        {view === "hub" ? (
+        {view === "hub" && (
           <motion.div
             key="hub"
             initial={{ opacity: 0, y: 20 }}
@@ -82,9 +120,102 @@ export default function Quiz({ profile, onProfileUpdate }: Props) {
               </div>
             </div>
 
+            {/* Daily Challenge card */}
+            <div className="label-frame mb-6 bg-pine/70 p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">📅</span>
+                  <div>
+                    <h4 className="font-display text-lg font-bold text-parch">Desafío Diario</h4>
+                    <p className="text-[10px] font-bold tracking-[0.14em] text-sage uppercase">
+                      {dailyCompleted
+                        ? `Completado ✓ · Racha: ${dailyStreak} días`
+                        : "Un espécimen misterioso te espera"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handlePlayDaily}
+                  disabled={dailyCompleted}
+                  className={`shrink-0 border px-4 py-2 text-[11px] font-bold tracking-[0.14em] uppercase transition-all ${
+                    dailyCompleted
+                      ? "cursor-not-allowed border-moss/40 bg-moss/10 text-bone/30"
+                      : "border-amber bg-amber text-ink hover:bg-honey"
+                  }`}
+                >
+                  {dailyCompleted ? "Hecho ✓" : "Jugar"}
+                </button>
+              </div>
+
+              {/* Last 7 days calendar */}
+              <div className="mt-4 flex items-center gap-1.5">
+                {last7.map((day) => (
+                  <div key={day.date} className="flex flex-col items-center gap-1">
+                    <div
+                      className={`h-3 w-3 border ${
+                        day.correct === true
+                          ? "border-sage bg-sage"
+                          : day.correct === false
+                            ? "border-rust bg-rust"
+                            : "border-moss/50 bg-ink/50"
+                      }`}
+                    />
+                    <span className="text-[8px] text-bone/30">
+                      {day.date.slice(8)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Expedition card */}
+            <div className="label-frame mb-8 bg-pine/70 p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🗺️</span>
+                  <div>
+                    <h4 className="font-display text-lg font-bold text-parch">Expedición</h4>
+                    <p className="text-[10px] font-bold tracking-[0.14em] text-sage uppercase">
+                      {expeditionState.active
+                        ? `Estación ${expeditionState.stationIdx + 1}/${expeditionState.totalStations} · ${expeditionState.lives} vidas`
+                        : "5 estaciones, 3 vidas — supervivencia pura"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={expeditionState.active ? handleContinueExpedition : handleStartExpedition}
+                  className="shrink-0 border border-teal bg-teal px-4 py-2 text-[11px] font-bold tracking-[0.14em] text-ink uppercase transition-all hover:bg-sage"
+                >
+                  {expeditionState.active ? "Continuar" : "Expedición"}
+                </button>
+              </div>
+
+              {/* Station map */}
+              <div className="mt-4 flex items-center gap-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-1">
+                    <div
+                      className={`flex h-7 w-7 items-center justify-center border text-[10px] font-bold ${
+                        expeditionState.active && i < expeditionState.stationIdx
+                          ? "border-sage bg-sage/20 text-sage"
+                          : expeditionState.active && i === expeditionState.stationIdx
+                            ? "border-amber bg-amber/20 text-amber"
+                            : "border-moss/40 bg-ink/30 text-bone/30"
+                      }`}
+                    >
+                      {i + 1}
+                    </div>
+                    {i < 4 && (
+                      <div className={`h-px w-2 ${i < expeditionState.stationIdx ? "bg-sage" : "bg-moss/30"}`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Mode grid */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {QUIZ_MODES.map((m) => (
+              {REGULAR_MODES.map((m) => (
                 <button
                   key={m.id}
                   onClick={() => handleStartMode(m.id)}
@@ -112,7 +243,9 @@ export default function Quiz({ profile, onProfileUpdate }: Props) {
               ))}
             </div>
           </motion.div>
-        ) : (
+        )}
+
+        {view === "playing" && (
           <motion.div
             key="playing"
             initial={{ opacity: 0, scale: 0.98 }}
