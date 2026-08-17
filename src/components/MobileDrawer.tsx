@@ -7,6 +7,7 @@ const NAV_ITEMS: [string, string][] = [
   ["Ciencia", "#ciencia"],
   ["Herramientas", "#herramientas"],
   ["Caja", "#caja"],
+  ["Deseos", "#deseos"],
   ["Cuaderno", "#cuaderno"],
   ["Fuentes", "#fuentes"],
 ];
@@ -35,6 +36,7 @@ interface MobileDrawerProps {
   onInstall: () => void;
   onInstallFallback: () => void;
   collectionCount: number;
+  wishCount: number;
 }
 
 export default function MobileDrawer({
@@ -45,6 +47,7 @@ export default function MobileDrawer({
   onInstall,
   onInstallFallback,
   collectionCount,
+  wishCount,
 }: MobileDrawerProps) {
   useEffect(() => {
     if (!open) return;
@@ -141,6 +144,14 @@ export default function MobileDrawer({
               >
                 <PinMark className="h-4 w-4" />
                 Caja · {collectionCount}
+              </a>
+              <a
+                href="#deseos"
+                onClick={onClose}
+                className="flex w-full items-center gap-2 border border-rust/60 bg-rust/10 px-3 py-2 text-[11px] font-bold tracking-[0.16em] text-rust uppercase transition-colors hover:bg-rust/20"
+              >
+                <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor"><path d="M8 14s-5.5-3.5-5.5-7A3.5 3.5 0 0 1 8 4a3.5 3.5 0 0 1 5.5 3c0 3.5-5.5 7-5.5 7z" /></svg>
+                Deseos · {wishCount}
               </a>
             </div>
           </div>

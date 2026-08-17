@@ -33,6 +33,7 @@ import { SlidersHorizontal } from "lucide-react";
 
 const COL_KEY = "insecta:caja:v2";
 const LOG_KEY = "insecta:cuaderno:v2";
+const WISH_KEY = "insecta:wishlist:v1";
 
 function loadJSON<T>(key: string, fallback: T): T {
   try {
@@ -134,6 +135,9 @@ export default function App() {
   const [collection, setCollection] = useState<Record<string, SavedSpecimen>>(() =>
     loadJSON<Record<string, SavedSpecimen>>(COL_KEY, {})
   );
+  const [wishList, setWishList] = useState<Record<string, SavedSpecimen>>(() =>
+    loadJSON<Record<string, SavedSpecimen>>(WISH_KEY, {})
+  );
   const [sightings, setSightings] = useState<Sighting[]>(() => loadJSON<Sighting[]>(LOG_KEY, []));
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | undefined>(undefined);
@@ -146,6 +150,7 @@ export default function App() {
   const [fError, setFError] = useState("");
 
   useEffect(() => localStorage.setItem(COL_KEY, JSON.stringify(collection)), [collection]);
+  useEffect(() => localStorage.setItem(WISH_KEY, JSON.stringify(wishList)), [wishList]);
   useEffect(() => localStorage.setItem(LOG_KEY, JSON.stringify(sightings)), [sightings]);
 
   const showToast = useCallback((msg: string) => {
@@ -259,6 +264,27 @@ export default function App() {
     [showToast]
   );
 
+  const toggleWish = useCallback(
+    (t: CardTaxon) => {
+      setWishList((prev) => {
+        const has = prev[t.id];
+        const next = { ...prev };
+        if (has) delete next[t.id];
+        else
+          next[t.id] = {
+            id: t.id,
+            latin: t.latin,
+            common: t.common,
+            orderName: t.orderName,
+            photoUrl: t.photoUrl,
+          };
+        showToast(has ? `${t.latin} eliminada de tu lista` : `${t.latin} añadida a tu lista de deseos`);
+        return next;
+      });
+    },
+    [showToast]
+  );
+
   /* ---------- derivados ---------- */
 
   const sortedCards = useMemo(() => {
@@ -275,6 +301,7 @@ export default function App() {
     [cards]
   );
   const collectionList = useMemo(() => Object.values(collection), [collection]);
+  const wishListArr = useMemo(() => Object.values(wishList), [wishList]);
   const suggestionNames = useMemo(() => {
     const set = new Set<string>();
     cards.forEach((c) => set.add(c.latin));
@@ -427,6 +454,7 @@ export default function App() {
         onInstall={handleInstall}
         onInstallFallback={handleInstallFallback}
         collectionCount={collectionList.length}
+        wishCount={wishListArr.length}
       />
 
       <div className="relative z-10">
@@ -437,6 +465,7 @@ export default function App() {
           onInstall={handleInstall}
           onInstallFallback={handleInstallFallback}
           collectionCount={collectionList.length}
+          wishCount={wishListArr.length}
           onMenuToggle={() => setDrawerOpen(true)}
         />
 
@@ -827,8 +856,10 @@ export default function App() {
                   <TaxonCard
                     t={c}
                     collected={Boolean(collection[c.id])}
+                    wished={Boolean(wishList[c.id])}
                     onOpen={() => setActive(c)}
                     onCollect={() => toggleCollect(c)}
+                    onWish={() => toggleWish(c)}
                   />
                 </Reveal>
               ))}
@@ -948,6 +979,86 @@ export default function App() {
                           className="mt-2 w-full border border-moss py-1 text-[9px] font-bold tracking-[0.16em] text-bone/55 uppercase transition-colors hover:border-rust/70 hover:text-rust"
                         >
                           Desfijar
+                        </button>
+                      </div>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ---------- lista de deseos ---------- */}
+        <section id="deseos" className="relative border-t border-moss/60 bg-pine/40">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+            <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-bold tracking-[0.3em] text-sage uppercase">
+                  Especies que quiero ver
+                </p>
+                <h2 className="mt-1 font-display text-4xl font-black text-parch sm:text-5xl">
+                  Lista de deseos<span className="text-amber">.</span>
+                </h2>
+              </div>
+              <p className="max-w-sm text-sm text-bone/60">
+                Marca con el corazón las especies que te gustaría encontrar en campo — tu wish list personal de entomología.
+              </p>
+            </Reveal>
+
+            {wishListArr.length === 0 ? (
+              <Reveal className="label-frame flex flex-col items-center gap-3 bg-ink/50 px-6 py-14 text-center">
+                <svg viewBox="0 0 16 16" className="h-12 w-12 text-moss" fill="none" stroke="currentColor" strokeWidth="1.2">
+                  <path d="M8 14s-5.5-3.5-5.5-7A3.5 3.5 0 0 1 8 4a3.5 3.5 0 0 1 5.5 3c0 3.5-5.5 7-5.5 7z" />
+                </svg>
+                <p className="font-display text-xl text-bone/70 italic">
+                  Tu lista de deseos está vacía — toca el corazón en cualquier especie.
+                </p>
+                <a
+                  href="#atlas"
+                  className="mt-2 border border-amber/70 px-5 py-2 text-xs font-bold tracking-[0.2em] text-amber uppercase transition-colors hover:bg-amber hover:text-ink"
+                >
+                  Ir al atlas
+                </a>
+              </Reveal>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                {wishListArr.map((sp, i) => (
+                  <Reveal key={sp.id} delay={(i % 6) * 50} className="h-full">
+                    <div className="group relative h-full border border-rust/30 bg-pine transition-all hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,0,0,0.5)]">
+                      <div className="relative aspect-square overflow-hidden border-b border-moss/70 bg-fern/40">
+                        {sp.photoUrl ? (
+                          <img
+                            src={sp.photoUrl}
+                            alt={sp.latin}
+                            loading="lazy"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="bg-pingrid flex h-full items-center justify-center">
+                            <OrderGlyph k="beetle" className="h-14 w-14 text-bone/70" />
+                          </div>
+                        )}
+                        <svg viewBox="0 0 16 16" className="absolute top-2 right-2 h-5 w-5 text-rust drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]" fill="currentColor" stroke="none">
+                          <path d="M8 14s-5.5-3.5-5.5-7A3.5 3.5 0 0 1 8 4a3.5 3.5 0 0 1 5.5 3c0 3.5-5.5 7-5.5 7z" />
+                        </svg>
+                      </div>
+                      <div className="p-3">
+                        <p className="truncate font-display text-sm font-bold text-parch italic">{sp.latin}</p>
+                        <p className="truncate text-[10px] tracking-[0.14em] text-sage uppercase">
+                          {sp.orderName}
+                          {sp.common ? ` · ${sp.common}` : ""}
+                        </p>
+                        <button
+                          onClick={() => {
+                            const next = { ...wishList };
+                            delete next[sp.id];
+                            setWishList(next);
+                            showToast(`${sp.latin} eliminada de tu lista`);
+                          }}
+                          className="mt-2 w-full border border-moss py-1 text-[9px] font-bold tracking-[0.16em] text-bone/55 uppercase transition-colors hover:border-rust/70 hover:text-rust"
+                        >
+                          Quitar
                         </button>
                       </div>
                     </div>
@@ -1236,8 +1347,10 @@ export default function App() {
       <TaxonModal
         taxon={active}
         collected={active ? Boolean(collection[active.id]) : false}
+        wished={active ? Boolean(wishList[active.id]) : false}
         onClose={() => setActive(null)}
         onToggleCollect={toggleCollect}
+        onToggleWish={toggleWish}
       />
 
       {/* ---------- toast ---------- */}

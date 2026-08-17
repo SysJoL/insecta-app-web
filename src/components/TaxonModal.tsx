@@ -10,8 +10,10 @@ import GlossaryText from "./GlossaryText";
 interface Props {
   taxon: CardTaxon | null;
   collected: boolean;
+  wished: boolean;
   onClose: () => void;
   onToggleCollect: (t: CardTaxon) => void;
+  onToggleWish: (t: CardTaxon) => void;
 }
 
 type LoadState = "loading" | "ready" | "error";
@@ -35,7 +37,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "biblio", label: "Bibliografía" },
 ];
 
-export default function TaxonModal({ taxon, collected, onClose, onToggleCollect }: Props) {
+export default function TaxonModal({ taxon, collected, wished, onClose, onToggleCollect, onToggleWish }: Props) {
   const [detail, setDetail] = useState<TaxonDetail | null>(null);
   const [wiki, setWiki] = useState<WikiSummary | null>(null);
   const [iucn, setIucn] = useState<IucnResult | null>(null);
@@ -401,16 +403,28 @@ export default function TaxonModal({ taxon, collected, onClose, onToggleCollect 
               </a>
             ))}
           </div>
-          <button
-            onClick={() => onToggleCollect(taxon)}
-            className={`shrink-0 border px-5 py-2 text-[11px] font-bold tracking-[0.18em] uppercase transition-all ${
-              collected
-                ? "border-amber bg-amber text-ink hover:bg-honey"
-                : "border-amber/70 text-amber hover:bg-amber/10"
-            }`}
-          >
-            {collected ? "✓ En tu caja" : "Añadir a la caja"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onToggleWish(taxon)}
+              className={`shrink-0 border px-4 py-2 text-[11px] font-bold tracking-[0.18em] uppercase transition-all ${
+                wished
+                  ? "border-rust bg-rust/10 text-rust hover:bg-rust/20"
+                  : "border-moss text-sage hover:border-rust/60 hover:text-rust"
+              }`}
+            >
+              {wished ? "♥ En lista" : "Deseo"}
+            </button>
+            <button
+              onClick={() => onToggleCollect(taxon)}
+              className={`shrink-0 border px-5 py-2 text-[11px] font-bold tracking-[0.18em] uppercase transition-all ${
+                collected
+                  ? "border-amber bg-amber text-ink hover:bg-honey"
+                  : "border-amber/70 text-amber hover:bg-amber/10"
+              }`}
+            >
+              {collected ? "✓ En tu caja" : "Añadir a la caja"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

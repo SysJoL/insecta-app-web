@@ -6,11 +6,13 @@ import { OrderGlyph, PinMark } from "./glyphs";
 interface Props {
   t: CardTaxon;
   collected: boolean;
+  wished: boolean;
   onOpen: () => void;
   onCollect: () => void;
+  onWish: () => void;
 }
 
-export default function TaxonCard({ t, collected, onOpen, onCollect }: Props) {
+export default function TaxonCard({ t, collected, wished, onOpen, onCollect, onWish }: Props) {
   const [imgFailed, setImgFailed] = useState(false);
   const showPhoto = t.photoUrl && !imgFailed;
 
@@ -88,20 +90,38 @@ export default function TaxonCard({ t, collected, onOpen, onCollect }: Props) {
           <span className="text-[11px] font-semibold tracking-[0.18em] text-bone/50 uppercase transition-colors group-hover:text-amber">
             Abrir ficha →
           </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onCollect();
-            }}
-            className={`border px-2.5 py-1 text-[10px] font-semibold tracking-[0.16em] uppercase transition-colors ${
-              collected
-                ? "border-amber bg-amber text-ink"
-                : "border-moss text-sage hover:border-amber/60 hover:text-amber"
-            }`}
-            aria-label={collected ? `Quitar ${t.latin} de la caja` : `Añadir ${t.latin} a la caja`}
-          >
-            {collected ? "En caja" : "Colectar"}
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onWish();
+              }}
+              className={`border p-1.5 transition-colors ${
+                wished
+                  ? "border-rust/70 text-rust"
+                  : "border-moss text-sage hover:border-rust/50 hover:text-rust"
+              }`}
+              aria-label={wished ? `Quitar ${t.latin} de lista de deseos` : `Añadir ${t.latin} a lista de deseos`}
+            >
+              <svg viewBox="0 0 16 16" className="h-3 w-3" fill={wished ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5">
+                <path d="M8 14s-5.5-3.5-5.5-7A3.5 3.5 0 0 1 8 4a3.5 3.5 0 0 1 5.5 3c0 3.5-5.5 7-5.5 7z" />
+              </svg>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onCollect();
+              }}
+              className={`border px-2.5 py-1 text-[10px] font-semibold tracking-[0.16em] uppercase transition-colors ${
+                collected
+                  ? "border-amber bg-amber text-ink"
+                  : "border-moss text-sage hover:border-amber/60 hover:text-amber"
+              }`}
+              aria-label={collected ? `Quitar ${t.latin} de la caja` : `Añadir ${t.latin} a la caja`}
+            >
+              {collected ? "En caja" : "Colectar"}
+            </button>
+          </div>
         </div>
       </div>
     </article>

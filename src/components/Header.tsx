@@ -7,6 +7,7 @@ const NAV_ITEMS: [string, string][] = [
   ["Ciencia", "#ciencia"],
   ["Herramientas", "#herramientas"],
   ["Caja", "#caja"],
+  ["Deseos", "#deseos"],
   ["Cuaderno", "#cuaderno"],
   ["Fuentes", "#fuentes"],
 ];
@@ -17,6 +18,7 @@ interface HeaderProps {
   onInstall: () => void;
   onInstallFallback: () => void;
   collectionCount: number;
+  wishCount: number;
   onMenuToggle: () => void;
 }
 
@@ -26,6 +28,7 @@ export default function Header({
   onInstall,
   onInstallFallback,
   collectionCount,
+  wishCount,
   onMenuToggle,
 }: HeaderProps) {
   return (
@@ -65,6 +68,13 @@ export default function Header({
             <Download className="h-3.5 w-3.5" />
             Instalar
           </button>
+          <a
+            href="#deseos"
+            className="hidden items-center gap-1.5 border border-rust/60 bg-rust/10 px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-rust uppercase transition-colors hover:bg-rust/20 lg:flex"
+          >
+            <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor"><path d="M8 14s-5.5-3.5-5.5-7A3.5 3.5 0 0 1 8 4a3.5 3.5 0 0 1 5.5 3c0 3.5-5.5 7-5.5 7z" /></svg>
+            Deseos · {wishCount}
+          </a>
           <a
             href="#caja"
             className="flex items-center gap-1.5 border border-amber/60 bg-amber/10 px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-amber uppercase transition-colors hover:bg-amber hover:text-ink"
