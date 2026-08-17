@@ -773,10 +773,10 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
                   disabled={phase !== "playing"}
                   className={btnClass}
                 >
-                  <span className="mb-1.5 block h-5 w-5 items-center justify-center border border-current text-[9px] font-bold leading-none">
+                  <span className="mr-2 inline-flex h-5 w-5 shrink-0 items-center justify-center border border-current text-[9px] font-bold leading-none">
                     {String.fromCharCode(65 + i)}
                   </span>
-                  <span className="block leading-snug">{opt}</span>
+                  <span className="leading-snug">{opt}</span>
                 </button>
               );
             })}
