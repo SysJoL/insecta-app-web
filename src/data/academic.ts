@@ -1,0 +1,187 @@
+/* ------------------------------------------------------------------
+ * RIGOR ACADÉMICO · etimología, glosario técnico y bibliografía clásica
+ * ------------------------------------------------------------------ */
+
+export interface WordPart {
+  lang: string;      // "Griego", "Latín", "Griego latinizado"…
+  meaning: string;   // traducción corta
+  detail?: string;   // nota filológica ampliada
+}
+
+/** Etimología de géneros entomológicos frecuentes (clave: minúscula). */
+export const GENERA: Record<string, WordPart> = {
+  apis:        { lang: "Latín", meaning: "abeja", detail: "Voz latina clásica; de ella derivan «apicultura» y «apiario»." },
+  bombus:      { lang: "Griego", meaning: "zumbido, estruendo", detail: "De βόμβος (bómbos), onomatopeya del vuelo grave del abejorro." },
+  vespa:       { lang: "Latín", meaning: "avispa" },
+  papilio:     { lang: "Latín", meaning: "mariposa", detail: "Término latino que dio «papión» y el nombre del orden en varias lenguas." },
+  danaus:      { lang: "Griego", meaning: "Dánao", detail: "Rey mítico de Argos; las Danaides, sus 50 hijas, dan nombre a esta subfamilia." },
+  vanessa:     { lang: "Nombre propio", meaning: "«mariposa»", detail: "Alteración de Vanesse, nombre propio aplicado a las mariposas vulcanas." },
+  pieris:      { lang: "Griego", meaning: "Piérides", detail: "Hijas de Piero, que compitieron con las Musas y fueron convertidas en aves." },
+  lucanus:     { lang: "Latín", meaning: "de Lucania", detail: "Plinio el Viejo lo asocia a la región italiana de Lucania; el «ciervo volante»." },
+  dynastes:    { lang: "Griego", meaning: "el poderoso, el que gobierna", detail: "De δυναστεύω (dinasteúo); alude a la fuerza del escarabajo hércules." },
+  scarabaeus:  { lang: "Latín", meaning: "escarabajo", detail: "Del latín scarabaeus, a su vez del griego σκάραβος." },
+  coccinella:  { lang: "Latín", meaning: "rojo escarlata", detail: "De coccineus; el color de la mariquita por excelencia." },
+  harmonia:    { lang: "Griego", meaning: "Harmonía", detail: "Diosa griega de la concordia; la mariquita «armoniosa»." },
+  carabus:     { lang: "Griego", meaning: "escarabajo / cangrejo", detail: "De κάραβος (kárabos), nombre antiguo de crustáceos y coleópteros." },
+  cetonia:     { lang: "Griego", meaning: "cetonia, escarabajo florícola", detail: "Escarabajo de las flores, de reflejos metálicos." },
+  mantis:      { lang: "Griego", meaning: "profeta, adivino", detail: "De μάντις (mántis): la postura «orante» de la mantis sugirió la adivinación." },
+  empusa:      { lang: "Griego", meaning: "Empusa", detail: "Espectro de la mitología griega; la mantis «diabólica»." },
+  gryllus:     { lang: "Griego", meaning: "grillo", detail: "De γρύλλος (grýllos), voz onomatopéyica del canto del grillo." },
+  tettigonia:  { lang: "Griego", meaning: "cigarrilla", detail: "Diminutivo de τέττιξ (téttix), cigarra; los saltamontes verdes." },
+  schistocerca:{ lang: "Griego", meaning: "cola dividida", detail: "De σχιστός (dividido) + κέρκος (cola/cerco); la langosta del desierto." },
+  locusta:     { lang: "Latín", meaning: "langosta" },
+  formica:     { lang: "Latín", meaning: "hormiga", detail: "Voz latina que da «formícidos» y «ácido fórmico», aislado de su veneno." },
+  camponotus:  { lang: "Griego", meaning: "espalda curvada", detail: "De κάμπος (curvo) + νῶτος (espalda); las hormigas carpinteras." },
+  solenopsis:  { lang: "Griego", meaning: "aspecto de tubo", detail: "De σωλήν (canal) + ὄψις (aspecto); las hormigas de fuego." },
+  lasius:      { lang: "Griego", meaning: "peludo, velludo", detail: "De λάσιος (lásios); hormigas de jardín cubiertas de setas." },
+  musca:       { lang: "Latín", meaning: "mosca" },
+  drosophila:  { lang: "Griego", meaning: "amante del rocío", detail: "De δρόσος (rocío) + φίλος (amante); la mosca de la fruta, modelo genético." },
+  calliphora:  { lang: "Griego", meaning: "portadora de belleza", detail: "De κάλλος (belleza) + φορά (portadora); irónico, para la mosca verde." },
+  sarcophaga:  { lang: "Griego", meaning: "comedora de carne", detail: "De σάρξ (carne) + φάγος (comedora); las moscas de la carne." },
+  cimex:       { lang: "Latín", meaning: "chinche" },
+  acanthosoma: { lang: "Griego", meaning: "cuerpo espinoso", detail: "De ἄκανθα (espina) + σῶμα (cuerpo); chinche de los escudos espinosos." },
+  pentatoma:   { lang: "Griego", meaning: "cinco segmentos", detail: "De πέντε (cinco) + τόμος (segmento); chinche de cinco artejos." },
+  forficula:   { lang: "Latín", meaning: "tijerita", detail: "Diminutivo de forfex (tijera), por sus cercos en forma de pinza." },
+  lepisma:     { lang: "Griego", meaning: "escama", detail: "De λέπισμα (lépisma); el cuerpo escamoso del pececillo de plata." },
+  blattella:   { lang: "Latín", meaning: "cucarachita", detail: "Diminutivo de blatta, nombre latino de la cucaracha." },
+  periplaneta: { lang: "Griego", meaning: "errante alrededor", detail: "De περι- (alrededor) + πλανήτης (vagabundo); la cucaracha americana." },
+  phasma:      { lang: "Griego", meaning: "fantasma, aparición", detail: "De φάσμα (phásma); los insectos palo, maestros del camuflaje." },
+  lampyris:    { lang: "Griego", meaning: "la que brilla", detail: "De λάμπω (lúmpo, brillar); la luciérnaga europea." },
+  luciola:     { lang: "Latín", meaning: "lucecita", detail: "Diminutivo de lux / lucere (luz); otra luciérnaga." },
+  cicada:      { lang: "Latín", meaning: "cigarra" },
+  libellula:   { lang: "Latín", meaning: "librito", detail: "Diminutivo de liber (libro): las alas extendidas evocan páginas abiertas." },
+  anax:        { lang: "Griego", meaning: "rey, soberano", detail: "De ἄναξ (ánax); el «emperador» de las libélulas." },
+  aeshna:      { lang: "Griego", meaning: "libélula esmeralda", detail: "Género de grandes libélulas de ojos verdes." },
+};
+
+/** Epítetos específicos compartidos (clave: minúscula). */
+export const EPITHETS: Record<string, WordPart> = {
+  mellifera:    { lang: "Latín", meaning: "que produce miel", detail: "De mel (miel) + ferre (llevar)." },
+  plexippus:    { lang: "Griego", meaning: "Plexipo", detail: "Nombre mitológico; la monarca." },
+  septempunctata: { lang: "Latín", meaning: "de siete puntos" },
+  germanica:    { lang: "Latín", meaning: "de Germania" },
+  vulgaris:     { lang: "Latín", meaning: "común" },
+  domestica:    { lang: "Latín", meaning: "doméstica, de la casa" },
+  religiosa:    { lang: "Latín", meaning: "religiosa", detail: "Por la postura «orante» de la mantis." },
+  americana:    { lang: "Latín", meaning: "de América" },
+  orientalis:   { lang: "Latín", meaning: "oriental" },
+  migratoria:   { lang: "Latín", meaning: "migratoria" },
+  gregaria:     { lang: "Latín", meaning: "gregaria" },
+  viridis:      { lang: "Latín", meaning: "verde" },
+  imperator:    { lang: "Latín", meaning: "emperador" },
+  quadrimaculata: { lang: "Latín", meaning: "de cuatro manchas" },
+  magnifica:    { lang: "Latín", meaning: "magnífica" },
+  hercules:     { lang: "Griego", meaning: "Hércules", detail: "El héroe de fuerza sobrehumana." },
+  gigas:        { lang: "Griego", meaning: "gigante" },
+  gigantea:     { lang: "Latín", meaning: "gigantesca" },
+  regalis:      { lang: "Latín", meaning: "real" },
+  regina:       { lang: "Latín", meaning: "reina" },
+  major:        { lang: "Latín", meaning: "mayor" },
+  minor:        { lang: "Latín", meaning: "menor" },
+  rufa:         { lang: "Latín", meaning: "roja" },
+  niger:        { lang: "Latín", meaning: "negro" },
+  nigra:        { lang: "Latín", meaning: "negra" },
+  alba:         { lang: "Latín", meaning: "blanca" },
+  pallida:      { lang: "Latín", meaning: "pálida" },
+  maculata:     { lang: "Latín", meaning: "manchada" },
+  pilosa:       { lang: "Latín", meaning: "peluda" },
+  hortorum:     { lang: "Latín", meaning: "de los huertos" },
+  terrestris:   { lang: "Latín", meaning: "terrestre" },
+  lapidarius:   { lang: "Latín", meaning: "de las piedras" },
+  pascuorum:    { lang: "Latín", meaning: "de los pastos" },
+  pratorum:     { lang: "Latín", meaning: "de los prados" },
+  urbana:       { lang: "Latín", meaning: "urbana" },
+};
+
+/* ------------------------------------------------------------------
+ * GLOSARIO TÉCNICO · términos con tooltip (clave: minúscula, sing/plural)
+ * ------------------------------------------------------------------ */
+
+export const GLOSSARY: Record<string, { def: string }> = {
+  "élitro":  { def: "Ala anterior endurecida de los coleópteros, que protege las alas de vuelo." },
+  "élitros": { def: "Alas anteriores endurecidas de los coleópteros, que protegen las alas de vuelo." },
+  "pronoto": { def: "Placa dorsal del primer segmento torácico (protórax)." },
+  "antena":  { def: "Apéndice sensorial cefálico del tacto y el olfato." },
+  "antenas": { def: "Apéndices sensoriales cefálicos del tacto y el olfato." },
+  "mandíbula": { def: "Primera pieza bucal, usada para cortar y triturar." },
+  "mandíbulas": { def: "Primeras piezas bucales, usadas para cortar y triturar." },
+  "tarso":   { def: "Último artejo de la pata, con uñas para la sujeción." },
+  "tarsos":  { def: "Últimos artejos de la pata, con uñas para la sujeción." },
+  "tibia":   { def: "Artejo de la pata entre el fémur y el tarso." },
+  "fémur":   { def: "Tercer artejo de la pata, a menudo engrosado para el salto." },
+  "tórax":   { def: "Tagma medio que porta las patas y las alas." },
+  "abdomen": { def: "Tagma posterior con vísceras, genitales y espiráculos." },
+  "cabeza":  { def: "Tagma anterior con cerebro, ojos y piezas bucales." },
+  "exoesqueleto": { def: "Cubierta externa rígida de quitina que sostiene el cuerpo." },
+  "quitina": { def: "Polisacárido que forma el exoesqueleto de los artrópodos." },
+  "metamorfosis": { def: "Transformación del cuerpo entre fases del ciclo vital." },
+  "holometábolo": { def: "Insecto con metamorfosis completa: huevo, larva, pupa e imago." },
+  "hemimetábolo": { def: "Insecto con metamorfosis incompleta: huevo, ninfa e imago." },
+  "ninfa":   { def: "Fase juvenil de los hemimetábolos, similar al adulto." },
+  "larva":   { def: "Fase juvenil de los holometábolos, distinta del adulto." },
+  "pupa":    { def: "Fase de reposo en la que la larva se transforma en adulto." },
+  "imago":   { def: "Fase adulta y reproductora de un insecto." },
+  "dimorfismo": { def: "Diferencia morfológica entre sexos o castas de una especie." },
+  "feromona": { def: "Señal química usada para la comunicación entre individuos." },
+  "mimetismo": { def: "Semejanza con otra especie para engañar a depredadores o presas." },
+  "polinización": { def: "Transporte de polen que fecunda las flores." },
+  "parasitoide": { def: "Organismo cuya larva se desarrolla dentro o sobre un huésped, al que acaba matando." },
+  "probóscide": { def: "Tubo bucal alargado para libar néctar u otros líquidos." },
+  "espiráculo": { def: "Orificio respiratorio lateral del exoesqueleto." },
+  "espiráculos": { def: "Orificios respiratorios laterales del exoesqueleto." },
+  "tráquea": { def: "Conducto que lleva el aire directamente a los tejidos." },
+  "tráqueas": { def: "Conductos que llevan el aire directamente a los tejidos." },
+  "ocelo":   { def: "Ojo simple que percibe intensidad lumínica." },
+  "ocelos":  { def: "Ojos simples que perciben intensidad lumínica." },
+  "néctar":  { def: "Secreción azucarada de las flores, alimento de muchos adultos." },
+  "cercos":  { def: "Apéndices sensoriales pares en el extremo del abdomen." },
+  "terguito": { def: "Placa dorsal de un segmento abdominal o torácico." },
+  "esternito": { def: "Placa ventral de un segmento del cuerpo." },
+};
+
+/* ------------------------------------------------------------------
+ * BIBLIOGRAFÍA CLÁSICA · respaldo si la API de GBIF no responde
+ * ------------------------------------------------------------------ */
+
+export const CLASSIC_REFERENCES = [
+  {
+    title: "Phylogenomics resolves the timing and pattern of insect evolution",
+    authors: "Misof, B. et al.",
+    year: "2014",
+    source: "Science 346: 763–767",
+    doi: "10.1126/science.1257570",
+    url: "https://doi.org/10.1126/science.1257570",
+  },
+  {
+    title: "Evolution of the Insects",
+    authors: "Grimaldi, D. & Engel, M. S.",
+    year: "2005",
+    source: "Cambridge University Press",
+    doi: null as string | null,
+    url: null as string | null,
+  },
+  {
+    title: "The Insects: Structure and Function",
+    authors: "Chapman, R. F.",
+    year: "1998",
+    source: "Cambridge University Press",
+    doi: null as string | null,
+    url: null as string | null,
+  },
+  {
+    title: "Principles of Insect Morphology",
+    authors: "Snodgrass, R. E.",
+    year: "1935",
+    source: "McGraw-Hill",
+    doi: null as string | null,
+    url: null as string | null,
+  },
+  {
+    title: "The Insect Societies",
+    authors: "Wilson, E. O.",
+    year: "1971",
+    source: "Harvard University Press",
+    doi: null as string | null,
+    url: null as string | null,
+  },
+];

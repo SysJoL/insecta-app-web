@@ -3,6 +3,9 @@ import type { CardTaxon, TaxonDetail, WikiSummary } from "../lib/inat";
 import { EXTERNAL, fetchTaxonDetail, fetchWikiSummary, fmtFull, glyphForOrder, licenseLabel } from "../lib/inat";
 import { IUCN_CATS, IUCN_META, fetchIucn, type IucnResult } from "../lib/inatLive";
 import { OrderGlyph } from "./glyphs";
+import EtymologyPanel from "./EtymologyPanel";
+import ReferencesPanel from "./ReferencesPanel";
+import GlossaryText from "./GlossaryText";
 
 interface Props {
   taxon: CardTaxon | null;
@@ -85,6 +88,8 @@ export default function TaxonModal({ taxon, collected, onClose, onToggleCollect 
   const heroLicense = currentPhoto?.licenseCode ?? taxon.licenseCode;
 
   const lineage = detail?.ancestors ?? [];
+  const family = lineage.find((a) => a.rank === "family")?.name;
+  const refQuery = family ?? (taxon.rank === "order" ? taxon.latin : taxon.orderName);
 
   return (
     <div
@@ -227,6 +232,11 @@ export default function TaxonModal({ taxon, collected, onClose, onToggleCollect 
               </div>
             )}
 
+            {/* etimología del binomio */}
+            <div className="mt-5 border border-moss/70 bg-ink/40 p-4">
+              <EtymologyPanel latin={taxon.latin} />
+            </div>
+
             {/* conservación IUCN */}
             <div className="mt-5 border border-moss/70 bg-ink/40 p-4">
               <p className="mb-3 text-[11px] tracking-[0.24em] text-sage/70 uppercase">
@@ -297,7 +307,7 @@ export default function TaxonModal({ taxon, collected, onClose, onToggleCollect 
               ) : wiki?.extract ? (
                 <>
                   <p className="max-h-40 overflow-y-auto pr-2 text-[15px] leading-relaxed text-bone/85">
-                    {wiki.extract}
+                    <GlossaryText text={wiki.extract} />
                   </p>
                   {wiki.url && (
                     <a
@@ -318,6 +328,11 @@ export default function TaxonModal({ taxon, collected, onClose, onToggleCollect 
                   Sin resumen enciclopédico disponible para este taxón en español.
                 </p>
               )}
+            </div>
+
+            {/* bibliografía científica */}
+            <div className="mt-5 border border-moss/70 bg-ink/40 p-4">
+              <ReferencesPanel query={refQuery} latin={taxon.latin} />
             </div>
 
             {/* enlaces académicos */}

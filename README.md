@@ -12,6 +12,13 @@ Compilada para el repositorio [`SysJoL/insecta-app-web`](https://github.com/SysJ
   **semáforo IUCN (LC→EX) vía GBIF**, resumen enciclopédico en español vía
   **Wikipedia REST API**, galería fotográfica con crédito del observador y licencia
   Creative Commons, y enlaces cruzados a **iNaturalist, GBIF, EOL y Wikipedia**.
+- **Rigor académico** en cada ficha:
+  - *Etimología del binomio*: descompone género + epíteto y traduce cada raíz
+    (griego/latín) con nota filológica.
+  - *Bibliografía enlazada*: artículos con **DOI** vía la API de literatura de GBIF
+    (con clásicos de respaldo) + enlace al **Catálogo de la Vida**.
+  - *Glosario con tooltips*: los términos técnicos (élitros, pronoto, holometábolo…)
+    se subrayan en el resumen y muestran su definición al vuelo (hover o teclado).
 - **Ciencia en vivo** (mesa de análisis):
   - *Observatorio*: mapa de avistamientos georreferenciados sobre **Leaflet + OpenStreetMap**,
     fenología mensual (histograma de cuándo vuela cada especie) y especies cercanas por
