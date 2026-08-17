@@ -159,6 +159,12 @@ export default function App() {
   useEffect(() => localStorage.setItem(LOG_KEY, JSON.stringify(sightings)), [sightings]);
   useEffect(() => saveProfile(quizProfile), [quizProfile]);
 
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 2600);
+  }, []);
+
   // Listen for mastery events from QuizGame
   useEffect(() => {
     const handler = (e: Event) => {
@@ -171,12 +177,6 @@ export default function App() {
     window.addEventListener("insecta:mastery", handler);
     return () => window.removeEventListener("insecta:mastery", handler);
   }, [showToast]);
-
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    window.clearTimeout(toastTimer.current);
-    toastTimer.current = window.setTimeout(() => setToast(null), 2600);
-  }, []);
 
   /* ---------- carga de datos en vivo ---------- */
 
