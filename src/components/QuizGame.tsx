@@ -745,14 +745,14 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
           )}
 
           {/* Options */}
-          <div className="grid gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {q.options.map((opt, i) => {
               const isSelected = feedback?.selected === i;
               const isCorrectOption = i === q.correctIndex;
               const showResult = phase === "feedback";
 
               let btnClass =
-                "border border-moss bg-pine/80 px-5 py-4 text-left text-sm font-semibold transition-all ";
+                "border border-moss bg-pine/80 px-4 py-3 text-left text-xs font-semibold transition-all ";
 
               if (showResult) {
                 if (isCorrectOption) {
