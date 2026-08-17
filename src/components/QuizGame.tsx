@@ -77,6 +77,20 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
   useEffect(() => {
     const qs = generateQuestions(mode, quizPool);
     setQuestions(qs);
+
+    // Save expedition state immediately so hub shows progress
+    if (mode === "expedition") {
+      saveExpeditionState({
+        active: true,
+        lives: 3,
+        maxLives: 3,
+        stationIdx: 0,
+        totalStations: qs.length,
+        score: 0,
+        correctCount: 0,
+      });
+    }
+
     if (mode === "daily") {
       setPhase("playing");
       questionStartTime.current = Date.now();
