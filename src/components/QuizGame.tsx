@@ -421,9 +421,35 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
           )}
 
           {/* Question text */}
-          <p className="mb-8 text-center font-display text-xl font-bold leading-snug text-parch sm:text-2xl">
+          <p className="mb-8 text-center font-display text-xl font-bold leading-snug text-parch sm:text-2xl whitespace-pre-line">
             {q.question}
           </p>
+
+          {/* Ecosystem label badge */}
+          {q.ecosystemLabel && (
+            <div className="mb-4 flex justify-center">
+              <span className="border border-teal/40 bg-teal/10 px-3 py-1 text-[10px] font-bold tracking-[0.14em] text-teal uppercase">
+                {q.ecosystemLabel}
+              </span>
+            </div>
+          )}
+
+          {/* Cryptid hints */}
+          {q.hints && q.hints.length > 0 && (
+            <div className="mb-6 label-frame bg-pine/80 p-4">
+              <p className="mb-3 text-[10px] font-bold tracking-[0.16em] text-amber uppercase">
+                🔍 Pistas del espécimen misterioso
+              </p>
+              <div className="space-y-2">
+                {q.hints.map((hint, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="mt-0.5 shrink-0 text-amber text-xs">▸</span>
+                    <p className="text-sm leading-relaxed text-bone/80">{hint}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Options */}
           <div className="grid gap-3">
