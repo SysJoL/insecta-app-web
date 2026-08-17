@@ -1,5 +1,6 @@
 import { SPECIMENS } from "./insects";
 import { GENERA, EPITHETS } from "./academic";
+import { ECO_QUESTIONS, type EcoRelation } from "./ecosystemQuestions";
 import type { GlyphKey } from "./insects";
 
 /* ------------------------------------------------------------------ */
@@ -554,16 +555,8 @@ export function generateEvolution(): QuizQuestion[] {
  * Pregunta sobre relaciones ecológicas: depredación, polinización, parasitismo
  */
 export function generateEcosystem(): QuizQuestion[] {
-  interface EcoRelation {
-    question: string;
-    label: string;
-    correct: string;
-    distractors: string[];
-    explanation: string;
-    specimenId: string;
-  }
-
-  const RELATIONS: EcoRelation[] = [
+  // 10 originales (hardcoded abajo) + 35 nuevas (ecosystemQuestions.ts) = 45 total
+  const ORIGINAL_RELATIONS: EcoRelation[] = [
     {
       question: "¿Qué captura la libélula emperador al vuelo con 95% de éxito?",
       label: "Relación: Depredación",
@@ -686,7 +679,9 @@ export function generateEcosystem(): QuizQuestion[] {
     },
   ];
 
-  return shuffle(RELATIONS).slice(0, 10).map((r) => {
+  const ALL: EcoRelation[] = [...ORIGINAL_RELATIONS, ...ECO_QUESTIONS];
+
+  return shuffle(ALL).slice(0, 10).map((r) => {
     const options = shuffle([r.correct, ...r.distractors]);
     return {
       question: r.question,
