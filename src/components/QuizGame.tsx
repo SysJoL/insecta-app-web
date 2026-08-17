@@ -521,54 +521,55 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
 
   return (
     <div className="w-full">
-      {/* Top bar: score + streak + progress */}
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <span className="font-display text-2xl font-black text-amber tabular-nums">
-            {score}
+      {/* Top bar: score + streak + timer + progress */}
+      <div className="mb-6 flex items-center gap-3">
+        <span className="shrink-0 font-display text-2xl font-black text-amber tabular-nums">
+          {score}
+        </span>
+        {mode === "expedition" && (
+          <div className="flex shrink-0 items-center gap-1">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <span key={i} className={i < lives ? "text-rust" : "text-bone/20"}>
+                ❤️
+              </span>
+            ))}
+          </div>
+        )}
+        {mode === "daily" && (
+          <span className="shrink-0 border border-amber/40 bg-amber/10 px-2 py-1 text-[10px] font-bold text-amber">
+            📅 Diario
           </span>
-          {mode === "expedition" && (
-            <div className="flex items-center gap-1">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <span key={i} className={i < lives ? "text-rust" : "text-bone/20"}>
-                  ❤️
-                </span>
-              ))}
+        )}
+        {streak >= 2 && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="shrink-0 border border-amber/40 bg-amber/10 px-2 py-1 text-xs font-bold text-amber"
+          >
+            {streak}🔥
+          </motion.span>
+        )}
+
+        {/* Timer bar — fills flexible middle space */}
+        {mode !== "classify-order" && mode !== "daily" && (
+          <div className="mx-2 flex-1 self-center">
+            <div className="h-2 bg-ink/80">
+              <motion.div
+                className={`h-full ${timerColor}`}
+                initial={{ width: "100%" }}
+                animate={{ width: `${timeLeft}%` }}
+                transition={{ duration: 0.05, ease: "linear" }}
+              />
             </div>
-          )}
-          {mode === "daily" && (
-            <span className="border border-amber/40 bg-amber/10 px-2 py-1 text-[10px] font-bold text-amber">
-              📅 Diario
-            </span>
-          )}
-          {streak >= 2 && (
-            <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="flex items-center gap-1 border border-amber/40 bg-amber/10 px-2.5 py-1 text-sm font-bold text-amber"
-            >
-              {streak}🔥
-            </motion.span>
-          )}
-        </div>
-        <span className="text-[11px] font-bold tracking-[0.14em] text-sage uppercase tabular-nums">
+          </div>
+        )}
+
+        <span className="shrink-0 text-[11px] font-bold tracking-[0.14em] text-sage uppercase tabular-nums">
           {mode === "expedition"
             ? `Estación ${currentQ + 1}/${questions.length}`
             : `${currentQ + 1} / ${questions.length}`}
         </span>
       </div>
-
-      {/* Timer bar — hidden for daily and classify-order */}
-      {mode !== "classify-order" && mode !== "daily" && (
-        <div className="mb-6 h-1.5 bg-ink/80">
-          <motion.div
-            className={`h-full ${timerColor}`}
-            initial={{ width: "100%" }}
-            animate={{ width: `${timeLeft}%` }}
-            transition={{ duration: 0.05, ease: "linear" }}
-          />
-        </div>
-      )}
 
       {/* Question */}
       <AnimatePresence mode="wait">
