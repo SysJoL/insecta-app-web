@@ -550,18 +550,63 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
           </motion.span>
         )}
 
-        {/* Timer bar — fills flexible middle space */}
+        {/* Timer bar — fills flexible middle space, or feedback banner */}
         {mode !== "classify-order" && mode !== "daily" && (
-          <div className="mx-2 flex-1 self-center">
-            <div className="h-2 bg-ink/80">
+          <div className="mx-2 flex-1 self-center overflow-hidden">
+            {phase === "feedback" && feedback ? (
               <motion.div
-                className={`h-full ${timerColor}`}
-                initial={{ width: "100%" }}
-                animate={{ width: `${timeLeft}%` }}
-                transition={{ duration: 0.05, ease: "linear" }}
-              />
-            </div>
+                initial={{ y: -10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className={`flex items-center gap-2 border-l-4 px-3 py-1.5 text-[11px] font-semibold ${
+                  feedback.correct
+                    ? "border-sage bg-sage/10 text-sage"
+                    : "border-rust bg-rust/10 text-rust"
+                }`}
+              >
+                <span className="shrink-0">
+                  {feedback.correct ? "✓" : "✕"}
+                </span>
+                <span className="truncate">
+                  {feedback.correct
+                    ? `+${feedback.pointsEarned} pts`
+                    : feedback.correctAnswer}
+                </span>
+                {feedback.correct && streak >= 3 && (
+                  <span className="shrink-0 text-amber">🔥×{streak >= 10 ? 3 : streak >= 5 ? 2 : 1.5}</span>
+                )}
+              </motion.div>
+            ) : (
+              <div className="h-2 bg-ink/80">
+                <motion.div
+                  className={`h-full ${timerColor}`}
+                  initial={{ width: "100%" }}
+                  animate={{ width: `${timeLeft}%` }}
+                  transition={{ duration: 0.05, ease: "linear" }}
+                />
+              </div>
+            )}
           </div>
+        )}
+        {/* Feedback for modes without timer (daily, classify-order) */}
+        {feedback && (mode === "classify-order" || mode === "daily") && (
+          <motion.div
+            initial={{ y: -10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className={`mx-2 flex-1 self-center overflow-hidden border-l-4 px-3 py-1.5 text-[11px] font-semibold ${
+              feedback.correct
+                ? "border-sage bg-sage/10 text-sage"
+                : "border-rust bg-rust/10 text-rust"
+            }`}
+          >
+            <span className="shrink-0">
+              {feedback.correct ? "✓" : "✕"}
+            </span>{" "}
+            <span className="truncate">
+              {feedback.correct
+                ? `+${feedback.pointsEarned} pts`
+                : feedback.correctAnswer}
+            </span>
+          </motion.div>
         )}
 
         <span className="shrink-0 text-[11px] font-bold tracking-[0.14em] text-sage uppercase tabular-nums">
@@ -813,44 +858,6 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
             })}
           </div>
 
-          {/* Feedback explanation */}
-          <AnimatePresence>
-            {feedback && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className="overflow-hidden"
-              >
-                <div className="brass-line mt-4" />
-                <div
-                  className={`feedback-anim mt-3 border-l-4 px-4 py-3 ${
-                    feedback.correct
-                      ? "border-sage bg-sage/10 text-sage"
-                      : "border-rust bg-rust/10 text-rust/90"
-                  }`}
-                >
-                  <p className="text-sm font-semibold">
-                    {feedback.correct ? (
-                      <>
-                        ¡Correcto! +{feedback.pointsEarned} pts
-                        {streak >= 3 && (
-                          <span className="ml-2 text-amber">Racha ×{streak >= 10 ? 3 : streak >= 5 ? 2 : 1.5}</span>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        Incorrecto — la respuesta era{" "}
-                        <span className="font-bold">{feedback.correctAnswer}</span>
-                      </>
-                    )}
-                  </p>
-                  <p className="mt-1 text-xs opacity-80">{feedback.explanation}</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </motion.div>
       </AnimatePresence>
     </div>
