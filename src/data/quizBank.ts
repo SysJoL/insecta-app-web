@@ -64,6 +64,8 @@ export interface QuizQuestion {
   ecosystemLabel?: string;
   /** URL de imagen real del espécimen (iNaturalist) */
   image?: string;
+  /** Nombre científico para buscar foto precisa en iNaturalist */
+  latinName?: string;
 }
 
 export interface QuizModeInfo {
@@ -207,6 +209,7 @@ export function generateSpeedScientific(pool?: QuizSpecimen[]): QuizQuestion[] {
       correctIndex: options.indexOf(s.latin),
       explanation: `${s.latin} — ${s.traits[0] ?? "Especie del orden " + s.order}.`,
       displayLabel: s.name,
+      latinName: s.latin,
       specimenId: s.id,
     });
   }
@@ -233,6 +236,7 @@ export function generateClassifyOrder(pool?: QuizSpecimen[]): QuizQuestion[] {
       correctIndex: options.indexOf(s.order),
       explanation: `${s.latin} pertenece al orden ${s.order}. ${s.traits[0] ?? ""}`,
       displayLabel: s.name,
+      latinName: s.latin,
       glyphKey: SPECIMENS.find((sp) => sp.latin === s.latin)?.orderKey,
       specimenId: s.id,
     });
@@ -405,6 +409,7 @@ export function generateTaxonomyChain(): QuizQuestion[] {
       correctIndex: options.indexOf(correctAnswer),
       explanation: `El ${rankName} correcto es "${correctAnswer}".`,
       displayLabel: c.label,
+      latinName: c.chain[6] ?? c.chain[5],
       chainLevel: rankName,
       chainItems,
       specimenId: c.specimenId,
@@ -843,6 +848,7 @@ export function generateDaily(pool?: QuizSpecimen[]): QuizQuestion[] {
       correctIndex: options.indexOf(s.latin),
       explanation: `${s.latin} — ${s.traits[0] ?? "Especie del orden " + s.order}.`,
       displayLabel: s.name,
+      latinName: s.latin,
       specimenId: s.id,
     },
   ];
@@ -882,6 +888,7 @@ export function generateExpedition(pool?: QuizSpecimen[]): QuizQuestion[] {
       correctIndex: options.indexOf(s.latin),
       explanation: `${s.latin} — ${s.traits[0] ?? "Especie del orden " + s.order}.`,
       displayLabel: s.name,
+      latinName: s.latin,
       specimenId: s.id,
     };
   });

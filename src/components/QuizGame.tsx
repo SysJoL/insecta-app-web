@@ -155,7 +155,8 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
     }
     setQuestionImage(null); // clear while loading
     let cancelled = false;
-    fetchTaxonPhoto(q.displayLabel).then((url) => {
+    const searchName = q.latinName ?? q.displayLabel;
+    fetchTaxonPhoto(searchName).then((url) => {
       if (!cancelled) setQuestionImage(url);
     });
     return () => { cancelled = true; };
