@@ -256,33 +256,33 @@ export default function Quiz({ profile, onProfileUpdate, quizPool }: Props) {
             </div>
           </motion.div>
         )}
-
-        {view === "playing" && createPortal(
-          <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-ink">
-            <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6">
-              <div className="mb-6">
-                <button
-                  onClick={handleBackToHub}
-                  className="flex items-center gap-2 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:text-amber"
-                >
-                  <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" stroke="currentColor" fill="none" strokeWidth="1.8">
-                    <path d="M10 3.5 5.5 8 10 12.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Volver al museo
-                </button>
-              </div>
-              <QuizGame
-                mode={activeMode}
-                profile={profile}
-                onProfileUpdate={onProfileUpdate}
-                onHub={handleBackToHub}
-                quizPool={quizPool}
-              />
-            </div>
-          </div>,
-          document.body
-        )}
       </AnimatePresence>
+
+      {view !== "hub" && createPortal(
+        <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-ink">
+          <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6">
+            <div className="mb-6">
+              <button
+                onClick={handleBackToHub}
+                className="flex items-center gap-2 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:text-amber"
+              >
+                <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" stroke="currentColor" fill="none" strokeWidth="1.8">
+                  <path d="M10 3.5 5.5 8 10 12.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Volver al museo
+              </button>
+            </div>
+            <QuizGame
+              mode={activeMode}
+              profile={profile}
+              onProfileUpdate={onProfileUpdate}
+              onHub={handleBackToHub}
+              quizPool={quizPool}
+            />
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
