@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { QUIZ_MODES, type QuizMode } from "../data/quizBank";
+import { QUIZ_MODES, type QuizMode, type QuizSpecimen } from "../data/quizBank";
 import {
   getLevel,
   loadDailyHistory,
@@ -17,6 +17,7 @@ import QuizGame from "./QuizGame";
 interface Props {
   profile: PlayerProfile;
   onProfileUpdate: (p: PlayerProfile) => void;
+  quizPool: QuizSpecimen[];
 }
 
 type View = "hub" | "playing" | "daily-hub" | "expedition-hub";
@@ -25,7 +26,7 @@ const REGULAR_MODES = QUIZ_MODES.filter(
   (m) => m.id !== "daily" && m.id !== "expedition"
 );
 
-export default function Quiz({ profile, onProfileUpdate }: Props) {
+export default function Quiz({ profile, onProfileUpdate, quizPool }: Props) {
   const [view, setView] = useState<View>("hub");
   const [activeMode, setActiveMode] = useState<QuizMode>("speed-scientific");
   const levelInfo = getLevel(profile.xp);
@@ -269,6 +270,7 @@ export default function Quiz({ profile, onProfileUpdate }: Props) {
               profile={profile}
               onProfileUpdate={onProfileUpdate}
               onHub={handleBackToHub}
+              quizPool={quizPool}
             />
           </motion.div>
         )}

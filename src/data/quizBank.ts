@@ -3,6 +3,31 @@ import { GENERA, EPITHETS } from "./academic";
 import type { GlyphKey } from "./insects";
 
 /* ------------------------------------------------------------------ */
+/*  Specimen type for quiz generators (works with curated + iNat)       */
+/* ------------------------------------------------------------------ */
+
+export interface QuizSpecimen {
+  id: string;
+  name: string;
+  latin: string;
+  order: string;
+  traits: string[];
+  habitat?: string;
+}
+
+/** Convert curated SPECIMENS to QuizSpecimen */
+export function specimensToQuizSpecimens(): QuizSpecimen[] {
+  return SPECIMENS.map((s) => ({
+    id: s.id,
+    name: s.name,
+    latin: s.latin,
+    order: s.order,
+    traits: s.traits,
+    habitat: s.habitat,
+  }));
+}
+
+/* ------------------------------------------------------------------ */
 /*  Tipos del quiz                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -165,11 +190,12 @@ function randomInt(min: number, max: number): number {
  * MODO 1: Velocidad Científica
  * Muestra el nombre vulgar → elige el latín correcto
  */
-export function generateSpeedScientific(): QuizQuestion[] {
+export function generateSpeedScientific(pool?: QuizSpecimen[]): QuizQuestion[] {
+  const specimens = pool ?? specimensToQuizSpecimens();
   const questions: QuizQuestion[] = [];
-  const allLatin = SPECIMENS.map((s) => s.latin);
+  const allLatin = specimens.map((s) => s.latin);
 
-  for (const s of shuffle(SPECIMENS)) {
+  for (const s of shuffle(specimens)) {
     const distractors = pickRandom(allLatin, 3, s.latin);
     const options = shuffle([s.latin, ...distractors]);
 
@@ -177,7 +203,7 @@ export function generateSpeedScientific(): QuizQuestion[] {
       question: s.name,
       options,
       correctIndex: options.indexOf(s.latin),
-      explanation: `${s.latin} — ${s.traits[0]}. ${s.desc.slice(0, 80)}…`,
+      explanation: `${s.latin} — ${s.traits[0] ?? "Especie del orden " + s.order}.`,
       displayLabel: s.name,
       specimenId: s.id,
     });
@@ -190,11 +216,12 @@ export function generateSpeedScientific(): QuizQuestion[] {
  * MODO 2: Clasifica el Orden
  * Muestra un especimen → elige su orden
  */
-export function generateClassifyOrder(): QuizQuestion[] {
+export function generateClassifyOrder(pool?: QuizSpecimen[]): QuizQuestion[] {
+  const specimens = pool ?? specimensToQuizSpecimens();
   const questions: QuizQuestion[] = [];
-  const allOrders = [...new Set(SPECIMENS.map((s) => s.order))];
+  const allOrders = [...new Set(specimens.map((s) => s.order))];
 
-  for (const s of shuffle(SPECIMENS)) {
+  for (const s of shuffle(specimens)) {
     const distractors = pickRandom(allOrders, 3, s.order);
     const options = shuffle([s.order, ...distractors]);
 
@@ -202,9 +229,9 @@ export function generateClassifyOrder(): QuizQuestion[] {
       question: `¿A qué orden pertenece ${s.latin}?`,
       options,
       correctIndex: options.indexOf(s.order),
-      explanation: `${s.latin} pertenece al orden ${s.order}. ${s.traits[0]}.`,
+      explanation: `${s.latin} pertenece al orden ${s.order}. ${s.traits[0] ?? ""}`,
       displayLabel: s.name,
-      glyphKey: s.orderKey,
+      glyphKey: SPECIMENS.find((sp) => sp.latin === s.latin)?.orderKey,
       specimenId: s.id,
     });
   }
@@ -785,19 +812,19 @@ export function generateCryptid(): QuizQuestion[] {
  * MODO 9: Desafío Diario
  * Una pregunta al día basada en la fecha — determinística, sin timer
  */
-export function generateDaily(): QuizQuestion[] {
+export function generateDaily(pool?: QuizSpecimen[]): QuizQuestion[] {
+  const specimens = pool ?? specimensToQuizSpecimens();
   const today = new Date();
   const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
-  // Simple hash djb2
   let hash = 5381;
   for (let i = 0; i < dateStr.length; i++) {
     hash = ((hash << 5) + hash + dateStr.charCodeAt(i)) | 0;
   }
-  const idx = Math.abs(hash) % SPECIMENS.length;
-  const s = SPECIMENS[idx];
+  const idx = Math.abs(hash) % specimens.length;
+  const s = specimens[idx];
 
-  const distractors = pickRandom(SPECIMENS.map((sp) => sp.latin), 3, s.latin);
+  const distractors = pickRandom(specimens.map((sp) => sp.latin), 3, s.latin);
   const options = shuffle([s.latin, ...distractors]);
 
   return [
@@ -805,7 +832,7 @@ export function generateDaily(): QuizQuestion[] {
       question: `Desafío Diario — ${dateStr}\n\n¿Qué especie es esta?`,
       options,
       correctIndex: options.indexOf(s.latin),
-      explanation: `${s.latin} — ${s.traits[0]}. ${s.desc.slice(0, 100)}…`,
+      explanation: `${s.latin} — ${s.traits[0] ?? "Especie del orden " + s.order}.`,
       displayLabel: s.name,
       specimenId: s.id,
     },
@@ -814,38 +841,53 @@ export function generateDaily(): QuizQuestion[] {
 
 /**
  * MODO 10: Expedición
- * 5 preguntas de velocidad con vidas — sin compras, supervivencia pura
+ * 5 preguntas diarias (seeded por fecha) con vidas — supervivencia pura
  */
-export function generateExpedition(): QuizQuestion[] {
-  const allLatin = SPECIMENS.map((s) => s.latin);
-  const questions: QuizQuestion[] = [];
+export function generateExpedition(pool?: QuizSpecimen[]): QuizQuestion[] {
+  const specimens = pool ?? specimensToQuizSpecimens();
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  let hash = 5381;
+  for (let i = 0; i < dateStr.length; i++) {
+    hash = ((hash << 5) + hash + dateStr.charCodeAt(i)) | 0;
+  }
 
-  for (const s of shuffle(SPECIMENS).slice(0, 5)) {
+  // Seeded Fisher-Yates shuffle
+  const indices = specimens.map((_, i) => i);
+  let seed = Math.abs(hash);
+  for (let i = indices.length - 1; i > 0; i--) {
+    seed = (seed * 16807 + 0) % 2147483647;
+    const j = seed % (i + 1);
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+
+  const allLatin = specimens.map((s) => s.latin);
+  const selected = indices.slice(0, 5).map((i) => specimens[i]);
+
+  return selected.map((s) => {
     const distractors = pickRandom(allLatin, 3, s.latin);
     const options = shuffle([s.latin, ...distractors]);
-    questions.push({
+    return {
       question: s.name,
       options,
       correctIndex: options.indexOf(s.latin),
-      explanation: `${s.latin} — ${s.traits[0]}.`,
+      explanation: `${s.latin} — ${s.traits[0] ?? "Especie del orden " + s.order}.`,
       displayLabel: s.name,
       specimenId: s.id,
-    });
-  }
-
-  return questions;
+    };
+  });
 }
 
 /* ------------------------------------------------------------------ */
 /*  Router principal                                                    */
 /* ------------------------------------------------------------------ */
 
-export function generateQuestions(mode: QuizMode): QuizQuestion[] {
+export function generateQuestions(mode: QuizMode, pool?: QuizSpecimen[]): QuizQuestion[] {
   switch (mode) {
     case "speed-scientific":
-      return generateSpeedScientific();
+      return generateSpeedScientific(pool);
     case "classify-order":
-      return generateClassifyOrder();
+      return generateClassifyOrder(pool);
     case "identify-glyph":
       return generateIdentifyGlyph();
     case "etymology":
@@ -859,10 +901,10 @@ export function generateQuestions(mode: QuizMode): QuizQuestion[] {
     case "cryptid":
       return generateCryptid();
     case "daily":
-      return generateDaily();
+      return generateDaily(pool);
     case "expedition":
-      return generateExpedition();
+      return generateExpedition(pool);
     default:
-      return generateSpeedScientific();
+      return generateSpeedScientific(pool);
   }
 }

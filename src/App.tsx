@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { SPECIMENS } from "./data/insects";
+import { specimensToQuizSpecimens, type QuizSpecimen } from "./data/quizBank";
 import {
   fetchOrders,
   fetchTopSpecies,
@@ -123,6 +124,21 @@ export default function App() {
   const orderMapRef = useRef<Map<number, string>>(new Map());
 
   const [cards, setCards] = useState<CardTaxon[]>([]);
+
+  // Quiz specimen pool: curated + iNaturalist
+  const quizPool: QuizSpecimen[] = useMemo(() => {
+    const curated = specimensToQuizSpecimens();
+    const inat = cards
+      .filter((c) => !c.curated && c.latin)
+      .map((c) => ({
+        id: c.id,
+        name: c.common ?? c.latin,
+        latin: c.latin,
+        order: c.orderName,
+        traits: [],
+      }));
+    return [...curated, ...inat];
+  }, [cards]);
   const [loading, setLoading] = useState(true);
   const [apiStatus, setApiStatus] = useState<ApiStatus>("boot");
   const [localMode, setLocalMode] = useState(false);
@@ -1201,7 +1217,7 @@ export default function App() {
             </Reveal>
 
             <Reveal delay={80}>
-              <Quiz profile={quizProfile} onProfileUpdate={setQuizProfile} />
+              <Quiz profile={quizProfile} onProfileUpdate={setQuizProfile} quizPool={quizPool} />
             </Reveal>
           </div>
         </section>

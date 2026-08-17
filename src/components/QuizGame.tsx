@@ -4,6 +4,7 @@ import {
   generateQuestions,
   type QuizMode,
   type QuizQuestion,
+  type QuizSpecimen,
 } from "../data/quizBank";
 import {
   calcPoints,
@@ -36,6 +37,7 @@ interface Props {
   profile: PlayerProfile;
   onProfileUpdate: (p: PlayerProfile) => void;
   onHub: () => void;
+  quizPool: QuizSpecimen[];
 }
 
 type Phase = "countdown" | "playing" | "feedback" | "results";
@@ -50,7 +52,7 @@ interface FeedbackState {
 
 const COUNTDOWN_NUMS = [3, 2, 1, "¡Vamos!"];
 
-export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Props) {
+export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPool }: Props) {
   const [phase, setPhase] = useState<Phase>("countdown");
   const [countdownIdx, setCountdownIdx] = useState(0);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -73,7 +75,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
 
   // Initialize questions and countdown
   useEffect(() => {
-    const qs = generateQuestions(mode);
+    const qs = generateQuestions(mode, quizPool);
     setQuestions(qs);
     if (mode === "daily") {
       setPhase("playing");
@@ -466,7 +468,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
         avgTimeMs={avgTime}
         profile={profile}
         onReplay={() => {
-          setQuestions(generateQuestions(mode));
+          setQuestions(generateQuestions(mode, quizPool));
           setCurrentQ(0);
           setScore(0);
           setStreak(0);
