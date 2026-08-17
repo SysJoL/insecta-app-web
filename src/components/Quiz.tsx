@@ -146,7 +146,7 @@ export default function Quiz({ profile, onProfileUpdate, orderMap }: Props) {
             {/* Daily + Expedition side by side */}
             <div className="mb-8 grid gap-6 sm:grid-cols-2 items-stretch">
             {/* Daily Challenge card */}
-            <div className="label-frame bg-pine/70 p-5">
+            <div className="label-frame flex flex-col justify-between bg-pine/70 p-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">📅</span>
@@ -194,7 +194,7 @@ export default function Quiz({ profile, onProfileUpdate, orderMap }: Props) {
             </div>
 
             {/* Expedition card */}
-            <div className="label-frame mb-8 bg-pine/70 p-5">
+            <div className="label-frame flex flex-col justify-between bg-pine/70 p-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">🗺️</span>
