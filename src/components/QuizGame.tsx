@@ -576,7 +576,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
                     <span className="shrink-0 text-amber">🔥×{streak >= 10 ? 3 : streak >= 5 ? 2 : 1.5}</span>
                   )}
                 </div>
-                <p className="mt-0.5 text-[10px] opacity-70 leading-tight truncate">{feedback.explanation}</p>
+                <p className="mt-0.5 text-[10px] opacity-70 leading-tight truncate"><ItalicLatin text={feedback.explanation} /></p>
               </motion.div>
             ) : (
               <div className="h-2 bg-ink/80">
@@ -611,7 +611,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
                   : feedback.correctAnswer}
               </span>
             </div>
-            <p className="mt-0.5 text-[10px] opacity-70 leading-tight truncate">{feedback.explanation}</p>
+            <p className="mt-0.5 text-[10px] opacity-70 leading-tight truncate"><ItalicLatin text={feedback.explanation} /></p>
           </motion.div>
         )}
 
@@ -767,7 +767,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
           {/* Question text */}
           {q.chainItems ? (
             <div className="mb-8 text-center">
-              <p className="mb-4 text-sm font-bold text-parch sm:text-base">{q.question}</p>
+              <p className="mb-4 text-sm font-bold text-parch sm:text-base"><ItalicLatin text={q.question} /></p>
               <div className="mx-auto max-w-3xl px-2 sm:px-0">
                 <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 sm:flex-nowrap sm:gap-x-0.5">
                   {q.chainItems.map((item, i) => (
@@ -796,7 +796,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
             </div>
           ) : (
             <p className="mb-8 text-center font-display text-xl font-bold leading-snug text-parch sm:text-2xl whitespace-pre-line">
-              {q.question}
+              <ItalicLatin text={q.question} />
             </p>
           )}
 
@@ -886,13 +886,29 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
                   <span className="shrink-0 text-amber">🔥×{streak >= 10 ? 3 : streak >= 5 ? 2 : 1.5}</span>
                 )}
               </div>
-              <p className="mt-1 text-[10px] opacity-70 leading-tight">{feedback.explanation}</p>
+              <p className="mt-1 text-[10px] opacity-70 leading-tight"><ItalicLatin text={feedback.explanation} /></p>
             </motion.div>
           )}
 
         </motion.div>
       </AnimatePresence>
     </div>
+  );
+}
+
+/** Renders text with Latin binomial names auto-italicized (e.g. "Apis mellifera") */
+function ItalicLatin({ text, className }: { text: string; className?: string }) {
+  const parts = text.split(/([A-Z][a-z]+ [a-z]+(?: [a-z]+)?)/g);
+  return (
+    <span className={className}>
+      {parts.map((part, i) =>
+        /^[A-Z][a-z]+ [a-z]+/.test(part) ? (
+          <em key={i}>{part}</em>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </span>
   );
 }
 
