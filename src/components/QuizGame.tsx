@@ -520,7 +520,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
         : "bg-rust";
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       {/* Top bar: score + streak + progress */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -688,16 +688,16 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
           {/* Specimen photo for daily/expedition/speed modes */}
           {q.displayLabel && !q.glyphKey && (
             <div className="mb-6 flex justify-center">
-              <div className="label-frame bg-pine/80 overflow-hidden" style={{ maxWidth: 280 }}>
+              <div className="label-frame bg-pine/80 overflow-hidden" style={{ maxWidth: 360, width: "100%" }}>
                 {questionImage ? (
                   <img
                     src={questionImage}
                     alt={q.displayLabel}
-                    className="h-48 w-full object-cover"
+                    className="h-64 sm:h-80 w-full object-cover"
                     loading="eager"
                   />
                 ) : (
-                  <div className="flex h-48 w-64 items-center justify-center shimmer">
+                  <div className="flex h-64 sm:h-80 w-full items-center justify-center shimmer">
                     <span className="text-[10px] font-bold tracking-[0.14em] text-sage/50 uppercase">
                       Cargando espécimen…
                     </span>

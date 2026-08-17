@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QUIZ_MODES, type QuizMode, type QuizSpecimen } from "../data/quizBank";
 import {
@@ -63,6 +63,16 @@ export default function Quiz({ profile, onProfileUpdate, quizPool }: Props) {
   const handleBackToHub = () => {
     setView("hub");
   };
+
+  // Lock body scroll when game is active
+  useEffect(() => {
+    if (view !== "hub") {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+  }, [view]);
 
   return (
     <div>
@@ -249,29 +259,32 @@ export default function Quiz({ profile, onProfileUpdate, quizPool }: Props) {
         {view === "playing" && (
           <motion.div
             key="playing"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.25 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-ink"
           >
-            <div className="mb-6">
-              <button
-                onClick={handleBackToHub}
-                className="flex items-center gap-2 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:text-amber"
-              >
-                <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" stroke="currentColor" fill="none" strokeWidth="1.8">
-                  <path d="M10 3.5 5.5 8 10 12.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Volver al museo
-              </button>
+            <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6">
+              <div className="mb-6">
+                <button
+                  onClick={handleBackToHub}
+                  className="flex items-center gap-2 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:text-amber"
+                >
+                  <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" stroke="currentColor" fill="none" strokeWidth="1.8">
+                    <path d="M10 3.5 5.5 8 10 12.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Volver al museo
+                </button>
+              </div>
+              <QuizGame
+                mode={activeMode}
+                profile={profile}
+                onProfileUpdate={onProfileUpdate}
+                onHub={handleBackToHub}
+                quizPool={quizPool}
+              />
             </div>
-            <QuizGame
-              mode={activeMode}
-              profile={profile}
-              onProfileUpdate={onProfileUpdate}
-              onHub={handleBackToHub}
-              quizPool={quizPool}
-            />
           </motion.div>
         )}
       </AnimatePresence>
