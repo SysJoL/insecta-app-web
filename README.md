@@ -1,0 +1,60 @@
+# INSECTA · Atlas entomológico en vivo
+
+Guía de campo académica de insectos conectada a fuentes de datos abiertas.
+Compilada para el repositorio [`SysJoL/insecta-app-web`](https://github.com/SysJoL/insecta-app-web).
+
+## Qué hace
+
+- **Atlas en vivo**: carga por orden (Coleoptera, Lepidoptera, Hymenoptera…) las especies más
+  observadas del mundo desde la **iNaturalist API v1**, con fotografía de campo verificada,
+  nombre vulgar y conteo de observaciones.
+- **Ficha académica** por espécimen: linaje taxonómico completo (Reino → Especie),
+  resumen enciclopédico en español vía **Wikipedia REST API**, galería fotográfica con
+  crédito del observador y licencia Creative Commons, y enlaces cruzados a
+  **iNaturalist, GBIF, EOL y Wikipedia**.
+- **Caja de colección** y **cuaderno de campo** con persistencia en `localStorage`.
+- **Búsqueda** contra la API con pausa tipográfica, ordenación y actualización manual.
+- **Cajón local de respaldo**: 14 especímenes curados con ilustración SVG propia si la red falla.
+
+## Fuentes de datos
+
+| Fuente | Uso | Clave |
+| --- | --- | --- |
+| [iNaturalist API v1](https://api.inaturalist.org/v1/docs/) | Taxa, observaciones, fotos | No requiere |
+| [Wikipedia REST API](https://es.wikipedia.org/api/rest_v1/) | Resúmenes enciclopédicos | No requiere |
+| GBIF / EOL | Enlaces de referencia | No requiere |
+
+Fotografías © sus observadores en iNaturalist, bajo licencias CC-BY / CC-BY-NC / CC0.
+
+## Stack
+
+- React 18 + TypeScript + Vite 6
+- Tailwind CSS **v4** (plugin `@tailwindcss/vite`, sintaxis `@theme` en `src/index.css`)
+- Sin dependencias adicionales de runtime: todo el arte es SVG propio.
+
+## Estructura
+
+```
+src/
+├── App.tsx                    # orquestación: atlas, colección, cuaderno
+├── lib/inat.ts                # cliente de iNaturalist + Wikipedia, tipos, licencias
+├── data/insects.ts            # cajón local curado (respaldo offline)
+└── components/
+    ├── glyphs.tsx             # láminas xilográficas SVG por orden
+    ├── TaxonCard.tsx          # tarjeta con foto, Ken Burns y licencias
+    ├── TaxonModal.tsx         # ficha académica completa
+    ├── Fireflies.tsx          # fondo ambiental (canvas)
+    └── Reveal.tsx             # reveals por scroll y contadores
+```
+
+## Ejecutar
+
+```bash
+npm install
+npm run dev      # desarrollo
+npm run build    # producción → dist/
+```
+
+> **Nota de migración**: si vienes del scaffold original de Lovable (Tailwind v3),
+> actualiza a Tailwind v4 (`npm i tailwindcss @tailwindcss/vite`) y registra el plugin
+> en `vite.config.ts`; el resto del código no usa Supabase ni otras dependencias.
