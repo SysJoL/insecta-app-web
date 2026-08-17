@@ -147,7 +147,7 @@ export async function fetchTopSpecies(
   orderMap: Map<number, string>,
   orderId: number | null,
   photoFilter: PhotoFilter = "with",
-  perPage = 24
+  perPage = 48
 ): Promise<CardTaxon[]> {
   const taxon = orderId ?? INSECTA_ID;
   const photoParam = photoFilter === "with" ? "&photos=true" : photoFilter === "without" ? "&photos=false" : "";
@@ -175,7 +175,7 @@ export async function searchSpecies(
   query: string,
   orderMap: Map<number, string>,
   photoFilter: PhotoFilter = "with",
-  perPage = 24
+  perPage = 48
 ): Promise<CardTaxon[]> {
   const q = encodeURIComponent(query.trim());
   const photoParam = photoFilter === "with" ? "&photos=true" : photoFilter === "without" ? "&photos=false" : "";
