@@ -595,7 +595,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
           <motion.div
             initial={{ y: -10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className={`mx-2 flex-1 self-center overflow-hidden border-l-4 px-3 py-1.5 text-[11px] font-semibold ${
+            className={`hidden sm:block mx-2 flex-1 self-center overflow-hidden border-l-4 px-3 py-1.5 text-[11px] font-semibold ${
               feedback.correct
                 ? "border-sage bg-sage/10 text-sage"
                 : "border-rust bg-rust/10 text-rust"
