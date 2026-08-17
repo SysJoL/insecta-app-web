@@ -54,6 +54,8 @@ export interface QuizQuestion {
   displayLabel?: string;
   /** Para modo cadena: el nivel que se rellena */
   chainLevel?: string;
+  /** Para modo cadena: items estructurados de la cadena taxonómica */
+  chainItems?: { rank: string; value: string; isBlank: boolean }[];
   /** ID del espécimen al que se refiere la pregunta (para mastery tracking) */
   specimenId?: string;
   /** Para modo criptida: pistas progresivas que se revelan */
@@ -391,13 +393,20 @@ export function generateTaxonomyChain(): QuizQuestion[] {
       .map((v, i) => (i === c.blankIndex ? "___" : v))
       .join(" → ");
 
+    const chainItems = c.chain.map((v, i) => ({
+      rank: RANK_LABELS[i] ?? "",
+      value: i === c.blankIndex ? "___" : v,
+      isBlank: i === c.blankIndex,
+    }));
+
     questions.push({
-      question: `Completa la cadena taxonómica de ${c.label}:\n${chainVisual}`,
+      question: `Completa la cadena taxonómica de ${c.label}:`,
       options,
       correctIndex: options.indexOf(correctAnswer),
       explanation: `El ${rankName} correcto es "${correctAnswer}".`,
       displayLabel: c.label,
       chainLevel: rankName,
+      chainItems,
       specimenId: c.specimenId,
     });
   }
