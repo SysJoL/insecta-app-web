@@ -717,23 +717,23 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
           {q.chainItems ? (
             <div className="mb-8 text-center">
               <p className="mb-4 text-sm font-bold text-parch sm:text-base">{q.question}</p>
-              <div className="mx-auto max-w-lg">
-                <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2">
+              <div className="mx-auto max-w-3xl px-2 sm:px-0">
+                <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-2 sm:flex-nowrap sm:gap-x-0.5">
                   {q.chainItems.map((item, i) => (
-                    <div key={i} className="flex items-center gap-1">
+                    <div key={i} className="flex items-center gap-0.5 sm:gap-0.5">
                       {i > 0 && (
-                        <span className="text-[10px] font-bold text-moss">→</span>
+                        <span className="text-[10px] font-bold text-moss sm:mx-0.5">→</span>
                       )}
-                      <div className={`flex flex-col items-center ${item.isBlank ? "min-w-[70px]" : ""}`}>
-                        <span className="text-[8px] font-bold tracking-[0.12em] text-sage/60 uppercase">
+                      <div className={`flex flex-col items-center ${item.isBlank ? "min-w-[50px] sm:min-w-[60px]" : ""}`}>
+                        <span className="text-[7px] font-bold tracking-[0.10em] text-sage/60 uppercase sm:text-[8px]">
                           {item.rank}
                         </span>
                         {item.isBlank ? (
-                          <span className="mt-0.5 border-b-2 border-dashed border-amber px-3 py-0.5 text-sm font-black text-amber animate-pulse">
+                          <span className="mt-0.5 border-b-2 border-dashed border-amber px-2 py-0.5 text-xs font-black text-amber animate-pulse sm:text-sm">
                             ?
                           </span>
                         ) : (
-                          <span className="mt-0.5 border border-moss/40 bg-ink/50 px-2 py-0.5 text-[11px] font-semibold text-bone/80">
+                          <span className="mt-0.5 border border-moss/40 bg-ink/50 px-1.5 py-0.5 text-[10px] font-semibold text-bone/80 sm:text-[11px] sm:px-2">
                             {item.value}
                           </span>
                         )}
