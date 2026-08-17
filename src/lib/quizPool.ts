@@ -1,5 +1,6 @@
 import { fetchTopSpecies, type CardTaxon } from "./inat";
 import { specimensToQuizSpecimens, type QuizSpecimen } from "../data/quizBank";
+import { BACKUP_QUIZ_SPECIMENS } from "../data/backupSpecimens";
 
 let cachedPool: QuizSpecimen[] | null = null;
 
@@ -36,7 +37,16 @@ export async function ensureQuizPool(
       traits: [],
     }));
   } catch {
-    cachedPool = specimensToQuizSpecimens();
+    // Fallback: 14 curados + 35 backup = ~49 especímenes
+    const curados = specimensToQuizSpecimens();
+    const backup = BACKUP_QUIZ_SPECIMENS.map((b) => ({
+      id: b.id,
+      name: b.name,
+      latin: b.latin,
+      order: b.order,
+      traits: b.traits,
+    }));
+    cachedPool = shuffle([...curados, ...backup]).slice(0, 20);
   }
 
   return cachedPool;
