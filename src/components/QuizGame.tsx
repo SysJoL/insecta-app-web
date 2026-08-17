@@ -827,7 +827,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
           )}
 
           {/* Options */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {q.options.map((opt, i) => {
               const isSelected = feedback?.selected === i;
               const isCorrectOption = i === q.correctIndex;
