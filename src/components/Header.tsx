@@ -70,17 +70,17 @@ export default function Header({
           </button>
           <a
             href="#deseos"
-            className="hidden items-center gap-1.5 border border-rust/60 bg-rust/10 px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-rust uppercase transition-colors hover:bg-rust/20 lg:flex"
+            className="hidden items-center gap-1 border border-rust/60 bg-rust/10 px-2.5 py-1.5 text-[11px] font-bold tabular-nums text-rust transition-colors hover:bg-rust/20 lg:flex"
           >
-            <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="currentColor"><path d="M8 14s-5.5-3.5-5.5-7A3.5 3.5 0 0 1 8 4a3.5 3.5 0 0 1 5.5 3c0 3.5-5.5 7-5.5 7z" /></svg>
-            Deseos · {wishCount}
+            <svg viewBox="0 0 16 16" className="h-4 w-4 shrink-0" fill="currentColor"><path d="M8 14s-5.5-3.5-5.5-7A3.5 3.5 0 0 1 8 4a3.5 3.5 0 0 1 5.5 3c0 3.5-5.5 7-5.5 7z" /></svg>
+            {wishCount}
           </a>
           <a
             href="#caja"
-            className="flex items-center gap-1.5 border border-amber/60 bg-amber/10 px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-amber uppercase transition-colors hover:bg-amber hover:text-ink"
+            className="flex items-center gap-1 border border-amber/60 bg-amber/10 px-2.5 py-1.5 text-[11px] font-bold tabular-nums text-amber transition-colors hover:bg-amber hover:text-ink"
           >
-            <PinMark className="h-4 w-4" />
-            Caja · {collectionCount}
+            <PinMark className="h-4 w-4 shrink-0" />
+            {collectionCount}
           </a>
         </div>
       </div>
