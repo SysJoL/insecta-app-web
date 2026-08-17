@@ -9,7 +9,7 @@ import {
   type OrderInfo,
 } from "./lib/inat";
 import { OrderGlyph, PinMark } from "./components/glyphs";
-import { Reveal, useCountUp } from "./components/Reveal";
+import { Reveal } from "./components/Reveal";
 import Fireflies from "./components/Fireflies";
 import TaxonCard from "./components/TaxonCard";
 import TaxonModal from "./components/TaxonModal";
@@ -20,6 +20,13 @@ import TaxonomyTree from "./components/TaxonomyTree";
 import AnatomyDiagram from "./components/AnatomyDiagram";
 import ScaleTool from "./components/ScaleTool";
 import ExportPanel from "./components/ExportPanel";
+import Header from "./components/Header";
+import MobileDrawer from "./components/MobileDrawer";
+import Footer from "./components/Footer";
+import ScrollProgress from "./components/ScrollProgress";
+import StatBlock from "./components/StatBlock";
+import FilterSheet from "./components/FilterSheet";
+import { SlidersHorizontal } from "lucide-react";
 
 /* ---------------- persistencia ---------------- */
 
@@ -84,38 +91,6 @@ function useClock() {
   return now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
-function ScrollProgress() {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const onScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setP(max > 0 ? (window.scrollY / max) * 100 : 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  return (
-    <div className="fixed top-0 left-0 z-[70] h-[3px] w-full">
-      <div className="h-full bg-amber transition-[width] duration-150 ease-out" style={{ width: `${p}%` }} />
-    </div>
-  );
-}
-
-function StatBlock({ target, suffix, label, sub }: { target: number; suffix?: string; label: string; sub: string }) {
-  const { ref, value } = useCountUp(target);
-  return (
-    <div className="border-l-2 border-amber/60 pl-4">
-      <span ref={ref} className="font-display text-4xl font-black text-parch tabular-nums sm:text-5xl">
-        {value.toLocaleString("es-ES")}
-        {suffix && <span className="text-2xl text-amber">{suffix}</span>}
-      </span>
-      <p className="mt-1 text-[11px] font-semibold tracking-[0.22em] text-sage uppercase">{label}</p>
-      <p className="text-xs text-bone/55">{sub}</p>
-    </div>
-  );
-}
-
 function SkeletonCard() {
   return (
     <div className="overflow-hidden border border-moss bg-pine/90">
@@ -127,14 +102,6 @@ function SkeletonCard() {
         <div className="shimmer mt-4 h-7 w-full" />
       </div>
     </div>
-  );
-}
-
-function ExternalLinkIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M4 12 12 4M6 4h6v6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   );
 }
 
@@ -158,6 +125,8 @@ export default function App() {
   const [activeOrder, setActiveOrder] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("obs");
+
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   const [active, setActive] = useState<CardTaxon | null>(null);
   const [collection, setCollection] = useState<Record<string, SavedSpecimen>>(() =>
@@ -289,7 +258,7 @@ export default function App() {
   }, [cards, sortKey]);
 
   const totalObs = useMemo(() => cards.reduce((acc, c) => acc + c.observations, 0), [cards]);
-  const heroCards = useMemo(() => cards.filter((c) => c.photoUrl).slice(0, 3), [cards]);
+  const heroAll = useMemo(() => cards.filter((c) => c.photoUrl), [cards]);
   const marqueeNames = useMemo(
     () => (cards.length ? cards.map((c) => c.latin).slice(0, 16) : CURATED_CARDS.map((c) => c.latin)),
     [cards]
@@ -338,6 +307,24 @@ export default function App() {
   /* ---------- mesa de ciencia en vivo ---------- */
   const [labTool, setLabTool] = useState<LabTool>("obs");
 
+  /* ---------- drawer ---------- */
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  /* ---------- hero rotation ---------- */
+  const [heroIdx, setHeroIdx] = useState(0);
+  useEffect(() => {
+    if (heroAll.length <= 3) return;
+    const t = window.setInterval(() => {
+      setHeroIdx((prev) => (prev + 1) % heroAll.length);
+    }, 4500);
+    return () => window.clearInterval(t);
+  }, [heroAll.length]);
+  const heroCards = useMemo(() => {
+    if (heroAll.length === 0) return [];
+    if (heroAll.length <= 3) return heroAll;
+    return Array.from({ length: 3 }, (_, i) => heroAll[(heroIdx + i) % heroAll.length]);
+  }, [heroAll, heroIdx]);
+
   /* ---------- PWA · instalación ---------- */
   const [canInstall, setCanInstall] = useState(false);
   const installEvt = useRef<(Event & { prompt: () => Promise<unknown> }) | null>(null);
@@ -360,6 +347,9 @@ export default function App() {
     if (!evt) return;
     await evt.prompt();
     setCanInstall(false);
+  };
+  const handleInstallFallback = () => {
+    showToast("La app se puede instalar desde el menú del navegador cuando el dispositivo lo permita");
   };
 
   /* ---------- estado de red · modo campo ---------- */
@@ -418,71 +408,31 @@ export default function App() {
       <div className="noise-veil" />
       <ScrollProgress />
 
+      <MobileDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        online={online}
+        canInstall={canInstall}
+        onInstall={handleInstall}
+        onInstallFallback={handleInstallFallback}
+        collectionCount={collectionList.length}
+      />
+
       <div className="relative z-10">
         {/* ---------- cabecera ---------- */}
-        <header className="sticky top-0 z-50 border-b border-moss/60 bg-ink/85 backdrop-blur-md">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            <a href="#inicio" className="flex items-center gap-2.5">
-              <OrderGlyph k="beetle" className="h-8 w-8 text-amber" />
-              <span className="font-display text-lg font-black tracking-tight text-parch">
-                INSECTA
-                <span className="ml-2 hidden text-[10px] font-semibold tracking-[0.26em] text-sage/80 uppercase sm:inline">
-                  Atlas entomológico en vivo
-                </span>
-              </span>
-            </a>
-
-            <nav className="hidden items-center gap-6 text-[12px] font-semibold tracking-[0.18em] uppercase md:flex">
-              {[
-                ["Atlas", "#atlas"],
-                ["Ciencia", "#ciencia"],
-                ["Herramientas", "#herramientas"],
-                ["Caja", "#caja"],
-                ["Cuaderno", "#cuaderno"],
-                ["Fuentes", "#fuentes"],
-              ].map(([label, href]) => (
-                <a key={href} href={href} className="text-bone/65 transition-colors hover:text-amber">
-                  {label}
-                </a>
-              ))}
-            </nav>
-
-            <div className="flex items-center gap-3">
-              {!online && (
-                <span className="hidden border border-rust/60 bg-rust/10 px-2.5 py-1 text-[10px] font-bold tracking-[0.14em] text-rust uppercase xl:block">
-                  Modo campo
-                </span>
-              )}
-              {canInstall && (
-                <button
-                  onClick={handleInstall}
-                  className="hidden items-center gap-1.5 border border-sage/60 px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:bg-sage hover:text-ink lg:flex"
-                >
-                  <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.6">
-                    <path d="M8 2v8M5 7l3 3 3-3M3 13h10" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  Instalar app
-                </button>
-              )}
-              <span className="hidden items-center gap-2 border border-moss/70 px-2.5 py-1 text-[11px] text-sage lg:flex">
-                <span className={`blink-dot h-1.5 w-1.5 rounded-full ${statusMeta.cls}`} />
-                {statusMeta.label} · <span className="font-mono tabular-nums">{clock}</span>
-              </span>
-              <a
-                href="#caja"
-                className="flex items-center gap-2 border border-amber/60 bg-amber/10 px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-amber uppercase transition-colors hover:bg-amber hover:text-ink"
-              >
-                <PinMark className="h-4 w-4" />
-                Caja · {collectionList.length}
-              </a>
-            </div>
-          </div>
-        </header>
+        <Header
+          online={online}
+          canInstall={canInstall}
+          onInstall={handleInstall}
+          onInstallFallback={handleInstallFallback}
+          collectionCount={collectionList.length}
+          onMenuToggle={() => setDrawerOpen(true)}
+        />
 
         {/* ---------- apertura ---------- */}
         <section id="inicio" className="relative overflow-hidden">
-          <div className="mx-auto grid max-w-7xl gap-12 px-4 pt-14 pb-16 sm:px-6 lg:grid-cols-12 lg:pt-20">
-            <div className="lg:col-span-7">
+          <div className="mx-auto grid max-w-7xl gap-6 px-4 pt-10 pb-10 sm:px-6 lg:grid-cols-12 lg:gap-12 lg:pt-20 lg:pb-16">
+            <div className="min-w-0 lg:col-span-7 lg:relative lg:z-10">
               <p className="line-mask text-[11px] font-bold tracking-[0.34em] text-sage uppercase">
                 <span style={{ animationDelay: "0.05s" }}>
                   Ciencia abierta · datos en vivo de iNaturalist
@@ -490,22 +440,22 @@ export default function App() {
               </p>
 
               <h1 className="mt-4 font-display font-black tracking-tight">
-                <span className="line-mask text-[clamp(3.4rem,10vw,7.5rem)] leading-[0.88] text-parch">
+                <span className="line-mask block text-[clamp(2.4rem,9vw,7.5rem)] leading-[0.88] text-parch">
                   <span style={{ animationDelay: "0.15s" }}>
                     ATLAS<span className="text-amber">.</span>
                   </span>
                 </span>
-                <span className="line-mask text-[clamp(3.4rem,10vw,7.5rem)] leading-[0.88] text-parch">
+                <span className="line-mask block text-[clamp(2rem,6vw,5rem)] leading-[0.88] text-parch">
                   <span style={{ animationDelay: "0.27s" }}>
                     ENTOMOLÓGICO
                   </span>
                 </span>
-                <span className="line-mask mt-3 text-[clamp(1.4rem,3.4vw,2.4rem)] leading-tight text-sage italic">
+                <span className="line-mask mt-2 block text-[clamp(1.1rem,3.2vw,2.4rem)] leading-tight text-sage italic">
                   <span style={{ animationDelay: "0.4s" }}>taxonomía viva, fotos de campo verificadas</span>
                 </span>
               </h1>
 
-              <div className="line-mask mt-6 max-w-xl">
+              <div className="line-mask mt-4 max-w-xl">
                 <p className="text-[15px] leading-relaxed text-bone/80">
                   Las especies más observadas del planeta, orden por orden, cargadas en directo
                   desde la API de iNaturalist: linaje taxonómico completo, notas de Wikipedia,
@@ -514,115 +464,173 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3">
+              <div className="mt-6 grid grid-cols-2 gap-3">
                 <a
                   href="#atlas"
-                  className="group flex items-center gap-3 border border-amber bg-amber px-6 py-3 text-sm font-bold tracking-[0.18em] text-ink uppercase transition-all hover:bg-honey hover:shadow-[0_10px_36px_rgba(229,168,59,0.25)]"
+                  className="group flex items-center justify-center gap-2  border border-amber bg-amber px-4 py-3 text-xs font-bold tracking-[0.14em] text-ink uppercase transition-all hover:bg-honey hover:shadow-[0_10px_36px_rgba(229,168,59,0.25)] sm:text-sm"
                 >
                   Explorar el atlas
-                  <svg viewBox="0 0 16 16" className="h-4 w-4 transition-transform group-hover:translate-x-1" stroke="currentColor" fill="none" strokeWidth="1.8">
+                  <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 sm:h-4 sm:w-4" stroke="currentColor" fill="none" strokeWidth="1.8">
                     <path d="M2 8h11M9 3.5 13.5 8 9 12.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </a>
                 <a
                   href="#cuaderno"
-                  className="border border-moss px-6 py-3 text-sm font-bold tracking-[0.18em] text-sage uppercase transition-colors hover:border-sage hover:text-parch"
+                  className="flex items-center justify-center  border border-moss px-4 py-3 text-xs font-bold tracking-[0.14em] text-sage uppercase transition-colors hover:border-sage hover:text-parch sm:text-sm"
                 >
                   Cuaderno de campo
                 </a>
               </div>
 
-              <div className="mt-10 grid max-w-lg grid-cols-3 gap-6">
-                <StatBlock target={cards.length} label="Especies en pantalla" sub={loading ? "cargando…" : "de la última consulta"} />
-                <StatBlock target={totalObs} label="Observaciones sumadas" sub="registros verificados" />
-                <StatBlock target={orders.length || 0} label="Órdenes de Insecta" sub="índice taxonómico" />
-              </div>
             </div>
 
             {/* especímenes destacados en vivo */}
-            <div className="relative hidden lg:col-span-5 lg:block">
-              <svg
-                viewBox="0 0 200 200"
-                className="absolute top-1/2 left-1/2 h-[430px] w-[430px] -translate-x-1/2 -translate-y-1/2 text-moss/50"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="0.6"
-                strokeDasharray="3 5"
-              >
-                <circle cx="100" cy="100" r="96" />
-                <circle cx="100" cy="100" r="70" />
-                {Array.from({ length: 12 }, (_, i) => {
-                  const a = (i * Math.PI) / 6;
-                  return (
-                    <line
-                      key={i}
-                      x1={100 + Math.cos(a) * 88}
-                      y1={100 + Math.sin(a) * 88}
-                      x2={100 + Math.cos(a) * 96}
-                      y2={100 + Math.sin(a) * 96}
-                    />
-                  );
-                })}
-              </svg>
-
-              <div className="relative h-[460px]">
-                {loading && heroCards.length === 0
-                  ? [0, 1, 2].map((i) => (
+            <div className="relative lg:col-span-5">
+              {/* mobile: grid 2 cols */}
+              <div className="grid grid-cols-2 gap-2 lg:hidden">
+                {(loading && heroCards.length === 0 ? [0, 1, 2] : heroCards.slice(0, 3)).map((item, i) => {
+                  if (loading && heroCards.length === 0) {
+                    return (
                       <div
                         key={i}
-                        className={`pin absolute overflow-hidden border border-moss bg-pine/95 shadow-[0_22px_50px_rgba(0,0,0,0.5)] ${
-                          ["top-0 right-6 w-56", "top-40 left-0 w-60", "bottom-0 right-0 w-52"][i]
+                        className={`overflow-hidden border border-moss bg-pine/95 shadow-[0_8px_24px_rgba(0,0,0,0.4)] ${
+                          i === 2 ? "col-span-2" : ""
                         }`}
                       >
-                        <div className="shimmer aspect-[4/3]" />
-                        <div className="space-y-2 p-3">
-                          <div className="shimmer h-3.5 w-3/4" />
-                          <div className="shimmer h-3 w-1/2" />
+                        <div className={`shimmer ${i === 2 ? "aspect-[2/1]" : "aspect-square"}`} />
+                        <div className="space-y-1.5 p-2.5">
+                          <div className="shimmer h-3 w-3/4" />
+                          <div className="shimmer h-2.5 w-1/2" />
                         </div>
                       </div>
-                    ))
-                  : heroCards.map((s, i) => {
-                      const layout = [
-                        { cls: "top-0 right-6 w-56", tilt: "-4deg" },
-                        { cls: "top-40 left-0 w-60", tilt: "3deg" },
-                        { cls: "bottom-0 right-0 w-52", tilt: "-2deg" },
-                      ][i] ?? { cls: "top-0 left-0 w-52", tilt: "0deg" };
-                      return (
-                        <button
-                          key={s.id}
-                          onClick={() => setActive(s)}
-                          className={`float-slow pin group absolute overflow-hidden border border-moss bg-pine/95 text-left shadow-[0_22px_50px_rgba(0,0,0,0.5)] transition-colors hover:border-amber/70 ${layout.cls}`}
-                          style={{ "--tilt": layout.tilt, animationDelay: `${i * 0.9}s` } as CSSProperties}
+                    );
+                  }
+                  const s = item as typeof heroCards[number];
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => setActive(s)}
+                      className={`group overflow-hidden border border-moss bg-pine/95 text-left shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-colors hover:border-amber/70 ${
+                        i === 2 ? "col-span-2" : ""
+                      }`}
+                    >
+                      <div className={`relative overflow-hidden ${i === 2 ? "aspect-[2/1]" : "aspect-square"}`}>
+                        <img
+                          src={s.photoUrl!}
+                          alt={s.latin}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 to-transparent" />
+                        <span className="absolute top-1.5 left-1.5 border border-bone/25 bg-ink/70 px-1 py-0.5 text-[7px] font-semibold tracking-[0.14em] text-bone uppercase">
+                          {s.orderName}
+                        </span>
+                      </div>
+                      <div className="p-2.5">
+                        <span className="block font-display text-xs leading-tight font-bold text-parch italic">
+                          {s.latin}
+                        </span>
+                        <span className="mt-0.5 block text-[8px] tracking-[0.14em] text-sage uppercase">
+                          {fmtCompact(s.observations)} obs.
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* desktop: floating cards */}
+              <div className="relative hidden lg:block">
+                <svg
+                  viewBox="0 0 200 200"
+                  className="absolute top-1/2 left-1/2 h-[430px] w-[430px] -translate-x-1/2 -translate-y-1/2 text-moss/50"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="0.6"
+                  strokeDasharray="3 5"
+                >
+                  <circle cx="100" cy="100" r="96" />
+                  <circle cx="100" cy="100" r="70" />
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const a = (i * Math.PI) / 6;
+                    return (
+                      <line
+                        key={i}
+                        x1={100 + Math.cos(a) * 88}
+                        y1={100 + Math.sin(a) * 88}
+                        x2={100 + Math.cos(a) * 96}
+                        y2={100 + Math.sin(a) * 96}
+                      />
+                    );
+                  })}
+                </svg>
+
+                <div className="relative h-[460px]">
+                  {loading && heroCards.length === 0
+                    ? [0, 1, 2].map((i) => (
+                        <div
+                          key={i}
+                          className={`pin absolute overflow-hidden border border-moss bg-pine/95 shadow-[0_22px_50px_rgba(0,0,0,0.5)] ${
+                            ["top-0 right-6 w-56", "top-40 left-0 w-60", "bottom-0 right-0 w-52"][i]
+                          }`}
                         >
-                          <div className="relative aspect-[4/3] overflow-hidden">
-                            <img
-                              src={s.photoUrl!}
-                              alt={s.latin}
-                              loading="lazy"
-                              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-ink/85 to-transparent" />
-                            <span className="absolute top-2 left-2 border border-bone/25 bg-ink/70 px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.16em] text-bone uppercase">
-                              {s.orderName}
-                            </span>
+                          <div className="shimmer aspect-[4/3]" />
+                          <div className="space-y-2 p-3">
+                            <div className="shimmer h-3.5 w-3/4" />
+                            <div className="shimmer h-3 w-1/2" />
                           </div>
-                          <div className="p-3">
-                            <span className="block font-display text-base leading-tight font-bold text-parch italic">
-                              {s.latin}
-                            </span>
-                            <span className="mt-0.5 block text-[10px] tracking-[0.16em] text-sage uppercase">
-                              {fmtCompact(s.observations)} observaciones
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
+                        </div>
+                      ))
+                    : heroCards.map((s, i) => {
+                        const layout = [
+                          { cls: "top-0 right-6 w-56", tilt: "-4deg" },
+                          { cls: "top-40 left-0 w-60", tilt: "3deg" },
+                          { cls: "bottom-0 right-0 w-52", tilt: "-2deg" },
+                        ][i] ?? { cls: "top-0 left-0 w-52", tilt: "0deg" };
+                        return (
+                          <button
+                            key={s.id}
+                            onClick={() => setActive(s)}
+                            className={`float-slow pin group absolute overflow-hidden border border-moss bg-pine/95 text-left shadow-[0_22px_50px_rgba(0,0,0,0.5)] transition-colors hover:border-amber/70 ${layout.cls}`}
+                            style={{ "--tilt": layout.tilt, animationDelay: `${i * 0.9}s` } as CSSProperties}
+                          >
+                            <div className="relative aspect-[4/3] overflow-hidden">
+                              <img
+                                src={s.photoUrl!}
+                                alt={s.latin}
+                                loading="lazy"
+                                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-ink/85 to-transparent" />
+                              <span className="absolute top-2 left-2 border border-bone/25 bg-ink/70 px-1.5 py-0.5 text-[9px] font-semibold tracking-[0.16em] text-bone uppercase">
+                                {s.orderName}
+                              </span>
+                            </div>
+                            <div className="p-3">
+                              <span className="block font-display text-base leading-tight font-bold text-parch italic">
+                                {s.latin}
+                              </span>
+                              <span className="mt-0.5 block text-[10px] tracking-[0.16em] text-sage uppercase">
+                                {fmtCompact(s.observations)} observaciones
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                </div>
               </div>
             </div>
           </div>
 
+          {/* stats a ancho completo */}
+          <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 pb-10 sm:grid-cols-3 sm:gap-10 sm:px-6 lg:pb-16">
+            <StatBlock target={cards.length} label="Especies en pantalla" sub={loading ? "cargando…" : "de la última consulta"} />
+            <StatBlock target={totalObs} label="Observaciones sumadas" sub="registros verificados" />
+            <StatBlock target={orders.length || 0} label="Órdenes de Insecta" sub="índice taxonómico" />
+          </div>
+
           {/* marquesina de nomenclatura (en vivo) */}
-          <div className="border-y border-moss/60 bg-pine/70 py-3 backdrop-blur-sm">
+          <div className="overflow-hidden border-y border-moss/60 bg-pine/70 py-3 backdrop-blur-sm">
             <div className="marquee-track flex w-max items-center gap-8 pr-8">
               {[...marqueeNames, ...marqueeNames].map((n, i) => (
                 <span
@@ -659,8 +667,33 @@ export default function App() {
 
           {/* barra de trabajo */}
           <Reveal delay={80} className="label-frame mb-8 bg-pine/70 p-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <label className="relative min-w-56 flex-1 sm:max-w-xs">
+            {/* mobile: search + filter button */}
+            <div className="flex gap-2 sm:hidden">
+              <label className="relative flex-1">
+                <svg viewBox="0 0 16 16" className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sage" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <circle cx="7" cy="7" r="4.5" />
+                  <path d="M10.5 10.5 14 14" strokeLinecap="round" />
+                </svg>
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Buscar en la API…"
+                  className="w-full border border-moss bg-ink/80 py-2.5 pr-3 pl-9 text-sm text-bone placeholder:text-bone/35 focus:border-amber"
+                  aria-label="Buscar especies en iNaturalist"
+                />
+              </label>
+              <button
+                onClick={() => setFilterSheetOpen(true)}
+                className="flex shrink-0 items-center gap-1.5 border border-moss bg-ink/80 px-3 text-sage transition-colors hover:border-amber/60 hover:text-amber"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="text-[10px] font-bold tracking-[0.12em] uppercase">Filtros</span>
+              </button>
+            </div>
+
+            {/* desktop: full grid */}
+            <div className="hidden grid-cols-[1fr_1fr] items-center gap-3 sm:grid">
+              <label className="relative w-full">
                 <svg viewBox="0 0 16 16" className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sage" fill="none" stroke="currentColor" strokeWidth="1.6">
                   <circle cx="7" cy="7" r="4.5" />
                   <path d="M10.5 10.5 14 14" strokeLinecap="round" />
@@ -674,45 +707,50 @@ export default function App() {
                 />
               </label>
 
-              <label className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.16em] text-sage uppercase">
-                Ordenar
-                <select
-                  value={sortKey}
-                  onChange={(e) => setSortKey(e.target.value as SortKey)}
-                  className="border border-moss bg-ink/80 px-2 py-2 text-xs text-bone normal-case focus:border-amber"
-                >
-                  <option value="obs">Observaciones</option>
-                  <option value="name">Nombre A–Z</option>
-                </select>
-              </label>
+              <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+                <label className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.16em] text-sage uppercase">
+                  Ordenar
+                  <select
+                    value={sortKey}
+                    onChange={(e) => setSortKey(e.target.value as SortKey)}
+                    className="border border-moss bg-ink/80 px-2 py-2.5 text-xs text-bone normal-case focus:border-amber"
+                  >
+                    <option value="obs">Observaciones</option>
+                    <option value="name">Nombre A–Z</option>
+                  </select>
+                </label>
 
-              <button
-                onClick={() => refresh(activeOrder, query)}
-                disabled={loading}
-                className="flex items-center gap-2 border border-moss px-3 py-2.5 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:border-amber/60 hover:text-amber disabled:opacity-50"
-              >
-                <svg
-                  viewBox="0 0 16 16"
-                  className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.7"
+                <button
+                  onClick={() => refresh(activeOrder, query)}
+                  disabled={loading}
+                  className="flex items-center gap-2 border border-moss px-3 py-2.5 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:border-amber/60 hover:text-amber disabled:opacity-50"
                 >
-                  <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 1.5v3h-3" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                {loading ? "Consultando…" : "Actualizar"}
-              </button>
+                  <svg
+                    viewBox="0 0 16 16"
+                    className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                  >
+                    <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 1.5v3h-3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {loading ? "Consultando…" : "Actualizar"}
+                </button>
 
-              {lastUpdate && !loading && (
-                <span className="text-[11px] text-bone/45 tabular-nums">
-                  última consulta ·{" "}
-                  {new Date(lastUpdate).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                </span>
-              )}
+                {lastUpdate && !loading && (
+                  <span className="text-[11px] text-bone/45 tabular-nums whitespace-nowrap">
+                    última consulta ·{" "}
+                    {new Date(lastUpdate).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  </span>
+                )}
+              </div>
             </div>
 
-            {/* chips de órdenes */}
-            <div className="mt-3 flex flex-wrap gap-1.5">
+            {/* separador */}
+            <div className="mt-3 border-t border-moss/50 hidden sm:block" />
+
+            {/* chips de órdenes — solo desktop */}
+            <div className="mt-3 hidden grid-cols-4 gap-1.5 sm:grid md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-9">
               <button
                 onClick={() => handleOrder(null)}
                 className={`border px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase transition-all ${
@@ -721,9 +759,9 @@ export default function App() {
                     : "border-moss text-sage hover:border-amber/50 hover:text-amber"
                 }`}
               >
-                Insecta · todos
+                Todos
               </button>
-              {orders.slice(0, 11).map((o) => {
+              {orders.map((o) => {
                 const isActive = activeOrder === o.id && !query;
                 return (
                   <button
@@ -1139,79 +1177,32 @@ export default function App() {
                 </ul>
               )}
             </Reveal>
+          </div>
 
             <Reveal delay={150} className="mt-14">
               <ExportPanel box={collectionList} log={sightings} onToast={showToast} />
             </Reveal>
-          </div>
         </section>
 
         {/* ---------- pie con fuentes académicas ---------- */}
-        <footer id="fuentes" className="relative overflow-hidden border-t border-moss/60 bg-ink">
-          <p
-            aria-hidden="true"
-            className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 font-display text-[22vw] leading-none font-black whitespace-nowrap text-fern/40 select-none"
-          >
-            INSECTA
-          </p>
-          <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <OrderGlyph k="beetle" className="h-8 w-8 text-amber" />
-                <span className="font-display text-xl font-black text-parch">INSECTA</span>
-              </div>
-              <p className="mt-3 max-w-xs text-sm text-bone/60">
-                Atlas entomológico de ciencia abierta: datos en vivo, fotografías con licencia y
-                referencias cruzadas a las grandes bases de biodiversidad.
-              </p>
-              <p className="mt-4 text-xs text-bone/45">
-                Compilado a partir del repositorio <span className="text-amber">SysJoL/insecta-app-web</span>.
-              </p>
-            </div>
-
-            <div>
-              <p className="mb-3 text-[11px] font-bold tracking-[0.26em] text-sage uppercase">Fuentes de datos</p>
-              <ul className="space-y-2.5 text-sm text-bone/75">
-                {[
-                  { n: "iNaturalist API v1", d: "especies, conteos y fotografías", u: "https://www.inaturalist.org/pages/api+reference" },
-                  { n: "Wikipedia REST API", d: "resúmenes enciclopédicos en español", u: "https://es.wikipedia.org/api/rest_v1" },
-                  { n: "GBIF", d: "referencia global de biodiversidad", u: "https://www.gbif.org/es" },
-                  { n: "Encyclopedia of Life", d: "fichas de historia natural", u: "https://eol.org" },
-                ].map((f) => (
-                  <li key={f.n}>
-                    <a href={f.u} target="_blank" rel="noreferrer" className="group flex items-start gap-2 transition-colors hover:text-amber">
-                      <span className="mt-1 text-amber"><ExternalLinkIcon /></span>
-                      <span>
-                        <span className="font-semibold text-parch group-hover:text-amber">{f.n}</span>
-                        <span className="block text-xs text-bone/50">{f.d}</span>
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <p className="mb-3 text-[11px] font-bold tracking-[0.26em] text-sage uppercase">Créditos y licencias</p>
-              <p className="text-sm leading-relaxed text-bone/70">
-                Las fotografías pertenecen a los observadores de la comunidad iNaturalist y se
-                muestran respetando su licencia Creative Commons (visible en cada tarjeta y
-                ficha). Los conteos corresponden a observaciones verificadas por la comunidad.
-              </p>
-              <p className="mt-4 text-sm text-bone/70">
-                Sin conexión, el atlas se apoya en un <span className="text-amber">cajón local</span> con
-                catorce especímenes curados e ilustración propia.
-              </p>
-              <p className="mt-6 text-xs text-bone/45">React · Vite · Tailwind — uso divulgativo y académico.</p>
-            </div>
-          </div>
-          <div className="relative border-t border-moss/50 py-4 text-center text-[11px] tracking-[0.24em] text-bone/40 uppercase">
-            Vol. IV · Hecho con lupa, API y paciencia
-          </div>
-        </footer>
+        <Footer statusLabel={statusMeta.label} statusCls={statusMeta.cls} clock={clock} />
       </div>
 
       {/* ---------- modal ---------- */}
+      <FilterSheet
+        open={filterSheetOpen}
+        onClose={() => setFilterSheetOpen(false)}
+        sortKey={sortKey}
+        onSortKey={setSortKey}
+        onRefresh={() => refresh(activeOrder, query)}
+        onOrder={handleOrder}
+        loading={loading}
+        lastUpdate={lastUpdate}
+        orders={orders}
+        activeOrder={activeOrder}
+        query={query}
+      />
+
       <TaxonModal
         taxon={active}
         collected={active ? Boolean(collection[active.id]) : false}
@@ -1221,8 +1212,8 @@ export default function App() {
 
       {/* ---------- toast ---------- */}
       {toast && (
-        <div className="toast-in fixed right-5 bottom-5 z-[90] flex items-center gap-3 border border-amber/70 bg-pine px-4 py-3 shadow-[0_18px_50px_rgba(0,0,0,0.6)]">
-          <span className="blink-dot h-2 w-2 rounded-full bg-amber" />
+        <div className="toast-in fixed bottom-20 left-4 right-4 z-[90] flex items-center gap-3 border border-amber/70 bg-pine px-4 py-3 shadow-[0_18px_50px_rgba(0,0,0,0.6)] sm:left-auto sm:right-5 sm:w-auto">
+          <span className="blink-dot h-2 w-2  bg-amber" />
           <p className="text-sm text-bone">{toast}</p>
         </div>
       )}

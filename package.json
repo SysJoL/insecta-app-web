@@ -25,6 +25,9 @@
     "recharts": "^2.10.0",
     "uuid": "^9.0.1"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.7",
     "@types/canvas-confetti": "^1.6.4",

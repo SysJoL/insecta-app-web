@@ -95,67 +95,67 @@ export default function ExportPanel({ box, log, onToast }: Props) {
 
   return (
     <>
-      <div className="label-frame bg-pine/80 p-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
+      <div className="label-frame w-full bg-pine/80 px-4 py-6 sm:px-6">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+          <div className="shrink-0 lg:w-[260px]">
             <p className="text-[11px] font-bold tracking-[0.3em] text-sage uppercase">
               Mesa de exportación
             </p>
             <h3 className="mt-1 font-display text-2xl font-black text-parch">
               Documenta tu recolecta<span className="text-amber">.</span>
             </h3>
-            <p className="mt-1 max-w-xl text-sm text-bone/60">
+            <p className="mt-1 text-sm text-bone/60">
               Lleva tus registros fuera de la app: CSV compatible con Excel y hojas de
               recolecta imprimibles, con casillas en blanco para el trabajo de campo.
             </p>
           </div>
-        </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <button
-            onClick={exportBox}
-            className="group border border-moss bg-ink/50 p-4 text-left transition-all hover:-translate-y-1 hover:border-amber/70"
-          >
-            <span className="flex items-center gap-2 text-amber">
-              <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M3 13v3h14v-3M10 3v10M6 9l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <span className="text-xs font-bold tracking-[0.18em] uppercase">CSV · Caja</span>
-            </span>
-            <span className="mt-1.5 block text-xs text-bone/55">
-              {box.length} especímenes · taxón, orden y fuente
-            </span>
-          </button>
+          <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <button
+              onClick={exportBox}
+              className="group w-full cursor-pointer border border-moss bg-ink/50 p-4 text-left transition-all hover:-translate-y-1 hover:border-amber/70"
+            >
+              <span className="flex items-center gap-2 text-amber">
+                <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M3 13v3h14v-3M10 3v10M6 9l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-xs font-bold tracking-[0.18em] uppercase">CSV · Caja</span>
+              </span>
+              <span className="mt-1.5 block text-xs text-bone/55">
+                {box.length} especímenes · taxón, orden y fuente
+              </span>
+            </button>
 
-          <button
-            onClick={exportLog}
-            className="group border border-moss bg-ink/50 p-4 text-left transition-all hover:-translate-y-1 hover:border-amber/70"
-          >
-            <span className="flex items-center gap-2 text-amber">
-              <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M3 13v3h14v-3M10 3v10M6 9l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <span className="text-xs font-bold tracking-[0.18em] uppercase">CSV · Cuaderno</span>
-            </span>
-            <span className="mt-1.5 block text-xs text-bone/55">
-              {log.length} anotaciones · fecha, especie, localidad
-            </span>
-          </button>
+            <button
+              onClick={exportLog}
+              className="group w-full cursor-pointer border border-moss bg-ink/50 p-4 text-left transition-all hover:-translate-y-1 hover:border-amber/70"
+            >
+              <span className="flex items-center gap-2 text-amber">
+                <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M3 13v3h14v-3M10 3v10M6 9l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-xs font-bold tracking-[0.18em] uppercase">CSV · Cuaderno</span>
+              </span>
+              <span className="mt-1.5 block text-xs text-bone/55">
+                {log.length} anotaciones · fecha, especie, localidad
+              </span>
+            </button>
 
-          <button
-            onClick={printSheet}
-            className="group border border-amber/60 bg-amber/10 p-4 text-left transition-all hover:-translate-y-1 hover:bg-amber hover:shadow-[0_10px_30px_rgba(229,168,59,0.25)]"
-          >
-            <span className="flex items-center gap-2 text-amber group-hover:text-ink">
-              <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M5 7V3h10v4M5 13H3V9h14v4h-2M5 11h10v6H5z" strokeLinejoin="round" />
-              </svg>
-              <span className="text-xs font-bold tracking-[0.18em] uppercase">Hoja de recolecta</span>
-            </span>
-            <span className="mt-1.5 block text-xs text-bone/55 group-hover:text-ink/70">
-              Imprimible · registro en papel estilo expedición
-            </span>
-          </button>
+            <button
+              onClick={printSheet}
+              className="group w-full cursor-pointer border border-amber/60 bg-amber/10 p-4 text-left transition-all hover:-translate-y-1 hover:bg-amber hover:shadow-[0_10px_30px_rgba(229,168,59,0.25)] sm:col-span-2 lg:col-span-1"
+            >
+              <span className="flex items-center gap-2 text-amber group-hover:text-ink">
+                <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M5 7V3h10v4M5 13H3V9h14v4h-2M5 11h10v6H5z" strokeLinejoin="round" />
+                </svg>
+                <span className="text-xs font-bold tracking-[0.18em] uppercase">Hoja de recolecta</span>
+              </span>
+              <span className="mt-1.5 block text-xs text-bone/55 group-hover:text-ink/70">
+                Imprimible · registro en papel estilo expedición
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 

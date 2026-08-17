@@ -116,8 +116,8 @@ interface SpeciesCountsResponse {
 }
 
 export function upgradePhoto(url: string): string {
-  if (url.includes("/square.jpg")) return url.replace("/square.jpg", "/medium.jpg");
-  if (url.includes("size=square")) return url.replace("size=square", "size=medium");
+  if (url.includes("/square.jpg")) return url.replace("/square.jpg", "/original.jpg");
+  if (url.includes("size=square")) return url.replace("size=square", "size=original");
   return url;
 }
 

@@ -313,6 +313,32 @@ textarea {
   }
 }
 
+/* ---------- drawer animations ---------- */
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.drawer-in {
+  animation: drawer-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.overlay-in {
+  animation: overlay-in 0.25s ease forwards;
+}
+
 /* ---------- leaflet · tema gabinete ---------- */
 
 .leaflet-container {
@@ -377,6 +403,10 @@ textarea {
   }
   .line-mask > span {
     animation-duration: 0.01s;
+  }
+  .drawer-in,
+  .overlay-in {
+    animation: none !important;
   }
   html {
     scroll-behavior: auto;
