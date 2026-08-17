@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { QUIZ_MODES, type QuizMode, type QuizSpecimen } from "../data/quizBank";
+import { QUIZ_MODES, type QuizMode } from "../data/quizBank";
 import {
   getLevel,
   loadDailyHistory,
@@ -13,12 +13,13 @@ import {
   loadExpeditionState,
   type PlayerProfile,
 } from "../lib/quizEngine";
+import { ensureQuizPool } from "../lib/quizPool";
 import QuizGame from "./QuizGame";
 
 interface Props {
   profile: PlayerProfile;
   onProfileUpdate: (p: PlayerProfile) => void;
-  quizPool: QuizSpecimen[];
+  orderMap: Map<number, string>;
 }
 
 type View = "hub" | "playing" | "daily-hub" | "expedition-hub";
@@ -27,9 +28,10 @@ const REGULAR_MODES = QUIZ_MODES.filter(
   (m) => m.id !== "daily" && m.id !== "expedition"
 );
 
-export default function Quiz({ profile, onProfileUpdate, quizPool }: Props) {
+export default function Quiz({ profile, onProfileUpdate, orderMap }: Props) {
   const [view, setView] = useState<View>("hub");
   const [activeMode, setActiveMode] = useState<QuizMode>("speed-scientific");
+  const [poolLoading, setPoolLoading] = useState(false);
   const levelInfo = getLevel(profile.xp);
 
   const dailyHistory = loadDailyHistory();
@@ -38,19 +40,28 @@ export default function Quiz({ profile, onProfileUpdate, quizPool }: Props) {
   const last7 = getLast7Days(dailyHistory);
   const expeditionState = loadExpeditionState();
 
-  const handleStartMode = (mode: QuizMode) => {
+  const handleStartMode = async (mode: QuizMode) => {
+    setPoolLoading(true);
+    await ensureQuizPool(orderMap);
+    setPoolLoading(false);
     setActiveMode(mode);
     setView("playing");
   };
 
-  const handlePlayDaily = () => {
+  const handlePlayDaily = async () => {
     if (dailyCompleted) return;
+    setPoolLoading(true);
+    await ensureQuizPool(orderMap);
+    setPoolLoading(false);
     setActiveMode("daily");
     setView("playing");
   };
 
-  const handleStartExpedition = () => {
+  const handleStartExpedition = async () => {
     resetExpeditionState();
+    setPoolLoading(true);
+    await ensureQuizPool(orderMap);
+    setPoolLoading(false);
     setActiveMode("expedition");
     setView("playing");
   };
@@ -258,6 +269,19 @@ export default function Quiz({ profile, onProfileUpdate, quizPool }: Props) {
         )}
       </AnimatePresence>
 
+      {poolLoading && createPortal(
+        <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-ink">
+          <div className="h-10 w-10 animate-spin border-2 border-moss border-t-amber" />
+          <p className="mt-5 text-sm font-semibold text-sage animate-pulse">
+            Consultando iNaturalist…
+          </p>
+          <p className="mt-1 text-[10px] text-bone/40">
+            Preparando tu juego
+          </p>
+        </div>,
+        document.body
+      )}
+
       {view !== "hub" && createPortal(
         <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-ink [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6">
@@ -272,13 +296,12 @@ export default function Quiz({ profile, onProfileUpdate, quizPool }: Props) {
                 Volver al museo
               </button>
             </div>
-            <QuizGame
-              mode={activeMode}
-              profile={profile}
-              onProfileUpdate={onProfileUpdate}
-              onHub={handleBackToHub}
-              quizPool={quizPool}
-            />
+              <QuizGame
+                mode={activeMode}
+                profile={profile}
+                onProfileUpdate={onProfileUpdate}
+                onHub={handleBackToHub}
+              />
           </div>
         </div>,
         document.body
