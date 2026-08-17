@@ -269,6 +269,50 @@ textarea {
   outline: none;
 }
 
+/* ---------- hoja de recolecta · impresión ---------- */
+
+.print-sheet {
+  display: none;
+  background: #fff;
+  color: #111;
+  font-family: var(--font-body);
+  padding: 28px 32px;
+}
+
+@media print {
+  @page {
+    margin: 12mm;
+  }
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+  .print-sheet {
+    display: block !important;
+  }
+  .print-sheet table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .print-sheet th,
+  .print-sheet td {
+    border: 1px solid #555;
+    padding: 5px 8px;
+    font-size: 11.5px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .print-sheet th {
+    background: #f2efe6;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 9.5px;
+  }
+  .print-sheet tr {
+    break-inside: avoid;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .marquee-track,
   .float-slow,

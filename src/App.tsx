@@ -13,6 +13,10 @@ import { Reveal, useCountUp } from "./components/Reveal";
 import Fireflies from "./components/Fireflies";
 import TaxonCard from "./components/TaxonCard";
 import TaxonModal from "./components/TaxonModal";
+import DichotomousKey from "./components/DichotomousKey";
+import AnatomyDiagram from "./components/AnatomyDiagram";
+import ScaleTool from "./components/ScaleTool";
+import ExportPanel from "./components/ExportPanel";
 
 /* ---------------- persistencia ---------------- */
 
@@ -320,6 +324,62 @@ export default function App() {
     showToast("Anotación eliminada");
   };
 
+  /* ---------- PWA · instalación ---------- */
+  const [canInstall, setCanInstall] = useState(false);
+  const installEvt = useRef<(Event & { prompt: () => Promise<unknown> }) | null>(null);
+  useEffect(() => {
+    const onPrompt = (e: Event) => {
+      e.preventDefault();
+      installEvt.current = e as Event & { prompt: () => Promise<unknown> };
+      setCanInstall(true);
+    };
+    const onInstalled = () => setCanInstall(false);
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
+  const handleInstall = async () => {
+    const evt = installEvt.current;
+    if (!evt) return;
+    await evt.prompt();
+    setCanInstall(false);
+  };
+
+  /* ---------- estado de red · modo campo ---------- */
+  const [online, setOnline] = useState(() => navigator.onLine);
+  useEffect(() => {
+    const onOnline = () => setOnline(true);
+    const onOffline = () => {
+      setOnline(false);
+      setLocalMode(true);
+      showToast("Sin conexión: modo campo activado (cajón local)");
+    };
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, [showToast]);
+
+  /* ---------- clave dicotómica → atlas ---------- */
+  const handlePickOrder = (order: string) => {
+    const match = orders.find((o) => o.name.toLowerCase() === order.toLowerCase());
+    if (match) {
+      setActiveOrder(match.id);
+      refresh(match.id, "");
+    } else {
+      setActiveOrder(null);
+      refresh(null, order);
+    }
+    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("atlas")?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+    showToast(`Atlas filtrado por ${order}`);
+  };
+
   const statusMeta =
     apiStatus === "online"
       ? { label: localMode ? "Cajón local" : "API iNaturalist · en línea", cls: "bg-limey" }
@@ -328,7 +388,7 @@ export default function App() {
         : { label: localMode ? "Cajón local" : "API sin conexión", cls: "bg-rust" };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen print:hidden">
       {/* fondo ambiental */}
       <div className="bg-blueprint fixed inset-0 z-0" />
       <div
@@ -361,6 +421,7 @@ export default function App() {
             <nav className="hidden items-center gap-6 text-[12px] font-semibold tracking-[0.18em] uppercase md:flex">
               {[
                 ["Atlas", "#atlas"],
+                ["Herramientas", "#herramientas"],
                 ["Caja", "#caja"],
                 ["Cuaderno", "#cuaderno"],
                 ["Fuentes", "#fuentes"],
@@ -372,6 +433,22 @@ export default function App() {
             </nav>
 
             <div className="flex items-center gap-3">
+              {!online && (
+                <span className="hidden border border-rust/60 bg-rust/10 px-2.5 py-1 text-[10px] font-bold tracking-[0.14em] text-rust uppercase xl:block">
+                  Modo campo
+                </span>
+              )}
+              {canInstall && (
+                <button
+                  onClick={handleInstall}
+                  className="hidden items-center gap-1.5 border border-sage/60 px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:bg-sage hover:text-ink lg:flex"
+                >
+                  <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.6">
+                    <path d="M8 2v8M5 7l3 3 3-3M3 13h10" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Instalar app
+                </button>
+              )}
               <span className="hidden items-center gap-2 border border-moss/70 px-2.5 py-1 text-[11px] text-sage lg:flex">
                 <span className={`blink-dot h-1.5 w-1.5 rounded-full ${statusMeta.cls}`} />
                 {statusMeta.label} · <span className="font-mono tabular-nums">{clock}</span>
@@ -800,6 +877,56 @@ export default function App() {
           </div>
         </section>
 
+        {/* ---------- mesa de herramientas ---------- */}
+        <section id="herramientas" className="relative border-t border-moss/60 bg-ink/50">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <Reveal className="flex flex-wrap items-end justify-between gap-4 py-12 pb-4">
+              <div>
+                <p className="text-[11px] font-bold tracking-[0.3em] text-sage uppercase">
+                  Banco de trabajo del naturalista
+                </p>
+                <h2 className="mt-1 font-display text-4xl font-black text-parch sm:text-5xl">
+                  Herramientas de campo<span className="text-amber">.</span>
+                </h2>
+              </div>
+              <p className="max-w-sm text-sm text-bone/60">
+                Determina el orden con la clave dicotómica, estudia la anatomía región a región
+                y compara tallas a escala real — sin salir del gabinete.
+              </p>
+            </Reveal>
+
+            <Reveal className="border-t border-moss/50 py-10">
+              <h3 className="mb-6 flex items-center gap-3 font-display text-2xl font-bold text-parch">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-amber/60 bg-amber/5 font-display text-sm text-amber">
+                  01
+                </span>
+                Clave dicotómica de órdenes
+              </h3>
+              <DichotomousKey onPickOrder={handlePickOrder} />
+            </Reveal>
+
+            <Reveal className="border-t border-moss/50 py-10">
+              <h3 className="mb-6 flex items-center gap-3 font-display text-2xl font-bold text-parch">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-amber/60 bg-amber/5 font-display text-sm text-amber">
+                  02
+                </span>
+                Anatomía dorsal interactiva
+              </h3>
+              <AnatomyDiagram />
+            </Reveal>
+
+            <Reveal className="border-t border-moss/50 py-10">
+              <h3 className="mb-6 flex items-center gap-3 font-display text-2xl font-bold text-parch">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-amber/60 bg-amber/5 font-display text-sm text-amber">
+                  03
+                </span>
+                Comparador a escala real
+              </h3>
+              <ScaleTool />
+            </Reveal>
+          </div>
+        </section>
+
         {/* ---------- cuaderno de campo ---------- */}
         <section id="cuaderno" className="relative border-t border-moss/60 bg-pine/60">
           <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-5">
@@ -952,6 +1079,10 @@ export default function App() {
                   })}
                 </ul>
               )}
+            </Reveal>
+
+            <Reveal delay={150} className="mt-14">
+              <ExportPanel box={collectionList} log={sightings} onToast={showToast} />
             </Reveal>
           </div>
         </section>

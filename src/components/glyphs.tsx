@@ -120,6 +120,30 @@ export function OrderGlyph({ k, className = "" }: Props) {
           <path d="M32 48v4" />
         </g>
       )}
+      {k === "fly" && (
+        <g>
+          <ellipse cx="18" cy="21" rx="11" ry="4.5" transform="rotate(-26 18 21)" />
+          <ellipse cx="46" cy="21" rx="11" ry="4.5" transform="rotate(26 46 21)" />
+          <circle cx="32" cy="12" r="4.5" />
+          <circle cx="29" cy="10.8" r="1.7" fill="currentColor" stroke="none" />
+          <circle cx="35" cy="10.8" r="1.7" fill="currentColor" stroke="none" />
+          <path d="M28 8l-5-5M36 8l5-5" strokeWidth={1.6} />
+          <ellipse cx="32" cy="22" rx="7.5" ry="5.5" />
+          <path d="M32 28c-7 0-10 6-10 13 0 9 5 15 10 15s10-6 10-15c0-7-3-13-10-13Z" />
+          <path d="M24.5 35q7.5 3 15 0M25.5 42q6.5 3 13 0M27 49q5 2.5 10 0" strokeWidth={1.4} />
+          <path d="M26 24l-8 6M38 24l8 6M25 31l-10 7M39 31l10 7M27 45l-7 9M37 45l7 9" strokeWidth={1.7} />
+        </g>
+      )}
+      {k === "bug" && (
+        <g>
+          <path d="M27 9l-5-6M37 9l5-6" />
+          <circle cx="32" cy="13" r="4" />
+          <ellipse cx="32" cy="23" rx="8" ry="5.5" />
+          <path d="M32 29c-8 0-11 7-11 15 0 9 6 15 11 15s11-6 11-15c0-8-3-15-11-15Z" />
+          <path d="M32 29v30" strokeWidth={1.5} />
+          <path d="M25 19l-10-5M39 19l10-5M23 29H10M41 29h13M25 40l-11 7M39 40l11 7" />
+        </g>
+      )}
       {k === "leaf" && (
         <g>
           <path d="M32 6C18 18 14 38 32 58c18-20 14-40 0-52Z" />

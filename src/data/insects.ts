@@ -9,7 +9,9 @@ export type GlyphKey =
   | "mantis"
   | "grasshopper"
   | "cicada"
-  | "leaf";
+  | "leaf"
+  | "fly"
+  | "bug";
 
 export interface Insect {
   id: string;

@@ -16,6 +16,14 @@ Compilada para el repositorio [`SysJoL/insecta-app-web`](https://github.com/SysJ
 - **Búsqueda** contra la API con pausa tipográfica, ordenación y actualización manual.
 - **Cajón local de respaldo**: 14 especímenes curados con ilustración SVG propia si la red falla.
 
+### Herramientas de campo
+
+- **Clave dicotómica interactiva** de órdenes, con rastro navegable y salto directo al atlas filtrado.
+- **Anatomía dorsal interactiva**: lámina SVG de un coleóptero con 11 regiones y glosario (Snodgrass).
+- **Comparador a escala real**: longitudes corporales sobre regla graduada con referencias cotidianas.
+- **Exportación**: CSV (caja y cuaderno, compatible con Excel en español) y **hoja de recolecta imprimible**.
+- **PWA instalable** con service worker: modo campo offline (cache + cajón local automático al perder señal).
+
 ## Fuentes de datos
 
 | Fuente | Uso | Clave |
