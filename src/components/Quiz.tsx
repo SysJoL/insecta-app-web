@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { QUIZ_MODES, type QuizMode, type QuizSpecimen } from "../data/quizBank";
 import {
@@ -256,15 +257,8 @@ export default function Quiz({ profile, onProfileUpdate, quizPool }: Props) {
           </motion.div>
         )}
 
-        {view === "playing" && (
-          <motion.div
-            key="playing"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-ink"
-          >
+        {view === "playing" && createPortal(
+          <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-ink">
             <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6">
               <div className="mb-6">
                 <button
@@ -285,7 +279,8 @@ export default function Quiz({ profile, onProfileUpdate, quizPool }: Props) {
                 quizPool={quizPool}
               />
             </div>
-          </motion.div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
     </div>
