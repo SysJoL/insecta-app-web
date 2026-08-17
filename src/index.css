@@ -451,3 +451,73 @@ textarea {
     scroll-behavior: auto;
   }
 }
+
+/* ---------- vintage / museum patina ---------- */
+
+.label-frame {
+  position: relative;
+}
+
+.label-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(229, 168, 59, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(163, 194, 147, 0.03) 0%, transparent 50%);
+}
+
+/* Paper texture overlay for cards */
+.paper-texture {
+  background-image:
+    linear-gradient(rgba(243, 236, 217, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(243, 236, 217, 0.015) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Soft inner shadow for depth */
+.inset-shadow {
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 2px rgba(255, 255, 255, 0.04);
+}
+
+/* Museum vitrine glow on hover */
+.vitrine-glow {
+  transition: box-shadow 0.3s ease;
+}
+.vitrine-glow:hover {
+  box-shadow:
+    0 0 0 1px rgba(229, 168, 59, 0.3),
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 2px rgba(229, 168, 59, 0.08);
+}
+
+/* Aged brass accent line */
+.brass-line {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(229, 168, 59, 0.4) 20%,
+    rgba(201, 138, 43, 0.6) 50%,
+    rgba(229, 168, 59, 0.4) 80%,
+    transparent
+  );
+}
+
+/* Feedback animation enhancements */
+@keyframes feedback-slide-in {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.feedback-anim {
+  animation: feedback-slide-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}

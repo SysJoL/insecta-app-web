@@ -13,8 +13,21 @@ import {
   saveDailyResult,
   saveExpeditionState,
   resetExpeditionState,
+  getLevel,
   type PlayerProfile,
 } from "../lib/quizEngine";
+import {
+  sfxClick,
+  sfxCorrect,
+  sfxWrong,
+  sfxStreak,
+  sfxLevelUp,
+  sfxCountdown,
+  sfxGo,
+  sfxMastery,
+  sfxStation,
+  sfxGameOver,
+} from "../lib/audio";
 import QuizResults from "./QuizResults";
 
 interface Props {
@@ -67,15 +80,18 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
     }
 
     // Countdown
+    sfxCountdown();
     let idx = 0;
     const interval = setInterval(() => {
       idx++;
       if (idx >= COUNTDOWN_NUMS.length) {
         clearInterval(interval);
+        sfxGo();
         setPhase("playing");
         questionStartTime.current = Date.now();
         return;
       }
+      sfxCountdown();
       setCountdownIdx(idx);
     }, 800);
 
@@ -115,6 +131,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
   const handleAnswer = useCallback(
     (selectedIndex: number) => {
       window.clearInterval(timerRef.current);
+      sfxClick();
 
       const q = questions[currentQ];
       if (!q) return;
@@ -126,6 +143,14 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
       const newBestStreak = Math.max(bestStreak, newStreak);
       setStreak(newStreak);
       setBestStreak(newBestStreak);
+
+      // Play correct/wrong sounds
+      if (isCorrect) {
+        sfxCorrect();
+        if (newStreak >= 3) sfxStreak();
+      } else {
+        sfxWrong();
+      }
 
       let pointsEarned = 0;
       let coinsEarned = 0;
@@ -153,6 +178,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
         isCorrect
       );
       if (justMastered) {
+        sfxMastery();
         window.setTimeout(() => {
           window.dispatchEvent(
             new CustomEvent("insecta:mastery", { detail: { specimenId: q.specimenId } })
@@ -203,6 +229,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
         if (mode === "expedition") {
           if (newLives <= 0) {
             // Failed — reset expedition
+            sfxGameOver();
             const finalCorrect = isCorrect ? correctCount + 1 : correctCount;
             const finalScore = score + pointsEarned;
             const xpEarned = finalCorrect * 100 + newBestStreak * 50;
@@ -230,6 +257,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
           const nextStation = stationIdx + 1;
           if (nextStation >= questions.length) {
             // Expedition complete — bonus!
+            sfxLevelUp();
             const finalCorrect = isCorrect ? correctCount + 1 : correctCount;
             const finalScore = score + pointsEarned + 200; // completion bonus
             const xpEarned = finalCorrect * 100 + newBestStreak * 50 + 100; // bonus XP
@@ -254,6 +282,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
           }
 
           // Next station
+          sfxStation();
           setStationIdx(nextStation);
           saveExpeditionState({
             active: true,
@@ -278,6 +307,11 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
           const finalScore = score + pointsEarned;
           const xpEarned = finalCorrect * 100 + newBestStreak * 50;
           const coinsFinal = totalCoins + coinsEarned;
+
+          // Check for level up
+          const oldLevel = getLevel(profile.xp).level;
+          const newLevel = getLevel(profile.xp + xpEarned).level;
+          if (newLevel > oldLevel) sfxLevelUp();
 
           const updated = {
             ...profileAfterMastery,
@@ -697,8 +731,9 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
                 transition={{ duration: 0.25 }}
                 className="overflow-hidden"
               >
+                <div className="brass-line mt-4" />
                 <div
-                  className={`mt-4 border-l-4 px-4 py-3 ${
+                  className={`feedback-anim mt-3 border-l-4 px-4 py-3 ${
                     feedback.correct
                       ? "border-sage bg-sage/10 text-sage"
                       : "border-rust bg-rust/10 text-rust/90"
