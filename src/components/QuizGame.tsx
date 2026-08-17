@@ -771,12 +771,12 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
                   key={i}
                   onClick={() => phase === "playing" && handleAnswer(i)}
                   disabled={phase !== "playing"}
-                  className={btnClass}
+                  className={`${btnClass} grid grid-cols-[auto_1fr] items-center gap-2.5`}
                 >
-                  <span className="mr-2 inline-flex h-5 w-5 shrink-0 items-center justify-center border border-current text-[9px] font-bold leading-none">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center border border-current text-[9px] font-bold">
                     {String.fromCharCode(65 + i)}
                   </span>
-                  <span className="leading-snug">{opt}</span>
+                  <span className="min-w-0 leading-snug">{opt}</span>
                 </button>
               );
             })}
