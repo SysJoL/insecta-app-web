@@ -7,6 +7,7 @@ const NAV_ITEMS: [string, string][] = [
   ["Ciencia", "#ciencia"],
   ["Herramientas", "#herramientas"],
   ["Quiz", "#quiz"],
+  ["Museo", "#museo"],
   ["Caja", "#caja"],
   ["Deseos", "#deseos"],
   ["Cuaderno", "#cuaderno"],

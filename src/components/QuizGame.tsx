@@ -9,6 +9,7 @@ import {
   calcPoints,
   calcCoins,
   getTimerDuration,
+  trackMastery,
   type PlayerProfile,
 } from "../lib/quizEngine";
 import QuizResults from "./QuizResults";
@@ -127,6 +128,24 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
         setTotalCoins((c) => c + coinsEarned);
       }
 
+      // Track mastery for this specimen
+      const { profile: profileAfterMastery, justMastered } = trackMastery(
+        profile,
+        q.specimenId ?? null,
+        isCorrect
+      );
+      if (justMastered) {
+        // Store the mastery toast info to show after feedback
+        window.setTimeout(() => {
+          // Use a custom event to trigger toast in App
+          window.dispatchEvent(
+            new CustomEvent("insecta:mastery", { detail: { specimenId: q.specimenId } })
+          );
+        }, 2600);
+      }
+      // Update profile in background (mastery counter)
+      onProfileUpdate(profileAfterMastery);
+
       setResponseTimes((prev) => [...prev, responseTime]);
 
       setFeedback({
@@ -146,23 +165,23 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
           setCurrentQ((c) => c + 1);
           setPhase("playing");
         } else {
-          // Round complete
+          // Round complete — use profileAfterMastery which has updated counters
           const finalCorrect = isCorrect ? correctCount + 1 : correctCount;
           const finalScore = score + pointsEarned;
           const xpEarned = finalCorrect * 100 + newBestStreak * 50;
           const coinsFinal = totalCoins + coinsEarned;
 
           const updated = {
-            ...profile,
-            totalCorrect: profile.totalCorrect + finalCorrect,
-            totalAnswered: profile.totalAnswered + questions.length,
-            bestStreak: Math.max(profile.bestStreak, newBestStreak),
-            xp: profile.xp + xpEarned,
-            coins: profile.coins + coinsFinal,
-            gamesPlayed: profile.gamesPlayed + 1,
+            ...profileAfterMastery,
+            totalCorrect: profileAfterMastery.totalCorrect + finalCorrect,
+            totalAnswered: profileAfterMastery.totalAnswered + questions.length,
+            bestStreak: Math.max(profileAfterMastery.bestStreak, newBestStreak),
+            xp: profileAfterMastery.xp + xpEarned,
+            coins: profileAfterMastery.coins + coinsFinal,
+            gamesPlayed: profileAfterMastery.gamesPlayed + 1,
             modeBest: {
-              ...profile.modeBest,
-              [mode]: Math.max(profile.modeBest[mode] ?? 0, finalScore),
+              ...profileAfterMastery.modeBest,
+              [mode]: Math.max(profileAfterMastery.modeBest[mode] ?? 0, finalScore),
             },
           };
           onProfileUpdate(updated);

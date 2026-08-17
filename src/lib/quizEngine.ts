@@ -6,6 +6,11 @@ import type { QuizMode } from "../data/quizBank";
 
 export const QUIZ_STATS_KEY = "insecta:quiz-stats:v1";
 
+export interface MuseumSlot {
+  specimenId: string | null;
+  decorationIds: string[]; // IDs de ShopItem aplicados
+}
+
 export interface PlayerProfile {
   totalCorrect: number;
   totalAnswered: number;
@@ -15,6 +20,16 @@ export interface PlayerProfile {
   level: number; // 0–3
   gamesPlayed: number;
   modeBest: Record<QuizMode, number>; // mejor score por modo
+  /** IDs de especímenes dominados (3+ correctas seguidas) */
+  masteredSpecimens: string[];
+  /** Contador de rachas correctas por espécimen (resetea en incorrecta) */
+  masteryCounters: Record<string, number>;
+  /** Slots del museo:哪些 espécimen están exhibidos y con qué decoración */
+  museumSlots: MuseumSlot[];
+  /** IDs de ShopItem ya comprados */
+  ownedDecorations: string[];
+  /** Cuántos slots están desbloqueados */
+  slotsUnlocked: number;
 }
 
 export const DEFAULT_PROFILE: PlayerProfile = {
@@ -32,6 +47,16 @@ export const DEFAULT_PROFILE: PlayerProfile = {
     etymology: 0,
     "taxonomy-chain": 0,
   },
+  masteredSpecimens: [],
+  masteryCounters: {},
+  museumSlots: [
+    { specimenId: null, decorationIds: [] },
+    { specimenId: null, decorationIds: [] },
+    { specimenId: null, decorationIds: [] },
+    { specimenId: null, decorationIds: [] },
+  ],
+  ownedDecorations: [],
+  slotsUnlocked: 4,
 };
 
 /* ------------------------------------------------------------------ */
@@ -156,4 +181,109 @@ export function updateProfileAfterRound(
   updated.level = getLevel(updated.xp).level;
 
   return updated;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Mastery tracking                                                    */
+/* ------------------------------------------------------------------ */
+
+/** Mínimo de correctas seguidas para dominar un espécimen */
+export const MASTERY_THRESHOLD = 3;
+
+/**
+ * Registra una respuesta y retorna el perfil actualizado.
+ * Si el jugador acierta, incrementa el contador del espécimen.
+ * Si llega a MASTERY_THRESHOLD, lo marca como dominado.
+ * Si falla, resetea el contador del espécimen.
+ */
+export function trackMastery(
+  profile: PlayerProfile,
+  specimenId: string | null,
+  correct: boolean
+): { profile: PlayerProfile; justMastered: boolean } {
+  if (!specimenId) return { profile, justMastered: false };
+
+  const updated = { ...profile, masteryCounters: { ...profile.masteryCounters } };
+
+  if (!correct) {
+    // Reset counter on wrong answer
+    updated.masteryCounters[specimenId] = 0;
+    return { profile: updated, justMastered: false };
+  }
+
+  const prev = updated.masteryCounters[specimenId] ?? 0;
+  const next = prev + 1;
+  updated.masteryCounters[specimenId] = next;
+
+  if (next >= MASTERY_THRESHOLD && !updated.masteredSpecimens.includes(specimenId)) {
+    updated.masteredSpecimens = [...updated.masteredSpecimens, specimenId];
+    return { profile: updated, justMastered: true };
+  }
+
+  return { profile: updated, justMastered: false };
+}
+
+/** Comprer una decoración de la tienda. Retorna null si no puede permitírselo. */
+export function buyDecoration(
+  profile: PlayerProfile,
+  decorationId: string,
+  cost: number
+): PlayerProfile | null {
+  if (profile.coins < cost) return null;
+  if (profile.ownedDecorations.includes(decorationId)) return profile;
+
+  return {
+    ...profile,
+    coins: profile.coins - cost,
+    ownedDecorations: [...profile.ownedDecorations, decorationId],
+  };
+}
+
+/** Desbloquear un slot nuevo. Retorna null si no puede permitírselo. */
+export function unlockSlot(
+  profile: PlayerProfile,
+  cost: number
+): PlayerProfile | null {
+  if (profile.coins < cost) return null;
+
+  return {
+    ...profile,
+    coins: profile.coins - cost,
+    slotsUnlocked: profile.slotsUnlocked + 1,
+    museumSlots: [
+      ...profile.museumSlots,
+      { specimenId: null, decorationIds: [] },
+    ],
+  };
+}
+
+/** Asignar un espécimen a un slot del museo. */
+export function assignSpecimenToSlot(
+  profile: PlayerProfile,
+  slotIndex: number,
+  specimenId: string | null
+): PlayerProfile {
+  const slots = [...profile.museumSlots];
+  if (slotIndex < 0 || slotIndex >= slots.length) return profile;
+  slots[slotIndex] = { ...slots[slotIndex], specimenId };
+  return { ...profile, museumSlots: slots };
+}
+
+/** Aplicar/quitar una decoración de un slot. */
+export function toggleDecoration(
+  profile: PlayerProfile,
+  slotIndex: number,
+  decorationId: string
+): PlayerProfile {
+  const slots = [...profile.museumSlots];
+  if (slotIndex < 0 || slotIndex >= slots.length) return profile;
+
+  const slot = { ...slots[slotIndex] };
+  const has = slot.decorationIds.includes(decorationId);
+  slot.decorationIds = has
+    ? slot.decorationIds.filter((d) => d !== decorationId)
+    : [...slot.decorationIds, decorationId];
+
+  slots[slotIndex] = slot;
+  return { ...profile, museumSlots: slots };
 }

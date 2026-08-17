@@ -28,6 +28,7 @@ import ScrollProgress from "./components/ScrollProgress";
 import StatBlock from "./components/StatBlock";
 import FilterSheet from "./components/FilterSheet";
 import Quiz from "./components/Quiz";
+import Museum from "./components/Museum";
 import { loadProfile, saveProfile, type PlayerProfile, DEFAULT_PROFILE } from "./lib/quizEngine";
 import { SlidersHorizontal } from "lucide-react";
 
@@ -157,6 +158,19 @@ export default function App() {
   useEffect(() => localStorage.setItem(WISH_KEY, JSON.stringify(wishList)), [wishList]);
   useEffect(() => localStorage.setItem(LOG_KEY, JSON.stringify(sightings)), [sightings]);
   useEffect(() => saveProfile(quizProfile), [quizProfile]);
+
+  // Listen for mastery events from QuizGame
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      const sp = SPECIMENS.find((s) => s.id === detail?.specimenId);
+      if (sp) {
+        showToast(`¡${sp.latin} dominado! Ahora puedes exhibirlo en tu museo 🏛️`);
+      }
+    };
+    window.addEventListener("insecta:mastery", handler);
+    return () => window.removeEventListener("insecta:mastery", handler);
+  }, [showToast]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -1188,6 +1202,30 @@ export default function App() {
 
             <Reveal delay={80}>
               <Quiz profile={quizProfile} onProfileUpdate={setQuizProfile} />
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ---------- museo personal ---------- */}
+        <section id="museo" className="relative border-t border-moss/60 bg-ink/50">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+            <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-bold tracking-[0.3em] text-sage uppercase">
+                  Tu gabinete de curiosidades
+                </p>
+                <h2 className="mt-1 font-display text-4xl font-black text-parch sm:text-5xl">
+                  El museo<span className="text-amber">.</span>
+                </h2>
+              </div>
+              <p className="max-w-sm text-sm text-bone/60">
+                Domina especímenes en el quiz para exhibirlos. Compra vitrinas,
+                fondos e iluminación con las monedas que ganes jugando.
+              </p>
+            </Reveal>
+
+            <Reveal delay={80}>
+              <Museum profile={quizProfile} onProfileUpdate={setQuizProfile} />
             </Reveal>
           </div>
         </section>

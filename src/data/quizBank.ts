@@ -24,6 +24,8 @@ export interface QuizQuestion {
   displayLabel?: string;
   /** Para modo cadena: el nivel que se rellena */
   chainLevel?: string;
+  /** ID del espécimen al que se refiere la pregunta (para mastery tracking) */
+  specimenId?: string;
 }
 
 export interface QuizModeInfo {
@@ -126,6 +128,7 @@ export function generateSpeedScientific(): QuizQuestion[] {
       correctIndex: options.indexOf(s.latin),
       explanation: `${s.latin} — ${s.traits[0]}. ${s.desc.slice(0, 80)}…`,
       displayLabel: s.name,
+      specimenId: s.id,
     });
   }
 
@@ -151,6 +154,7 @@ export function generateClassifyOrder(): QuizQuestion[] {
       explanation: `${s.latin} pertenece al orden ${s.order}. ${s.traits[0]}.`,
       displayLabel: s.name,
       glyphKey: s.orderKey,
+      specimenId: s.id,
     });
   }
 
@@ -256,23 +260,23 @@ export function generateEtymology(): QuizQuestion[] {
  * Muestra una cadena taxonómica con un nivel faltante
  */
 export function generateTaxonomyChain(): QuizQuestion[] {
-  const CHAINS: { chain: string[]; blankIndex: number; label: string }[] = [
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Coleoptera", "Scarabaeidae", "Goliathus", "G. goliatus"], blankIndex: 3, label: "Goliat" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Lepidoptera", "Nymphalidae", "Morpho", "M. menelaus"], blankIndex: 3, label: "Morpho azul" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Hymenoptera", "Apidae", "Apis", "A. mellifera"], blankIndex: 3, label: "Abeja europea" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Odonata", "Aeshnidae", "Anax", "A. imperator"], blankIndex: 3, label: "Libélula emperador" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Mantodea", "Mantidae", "Mantis", "M. religiosa"], blankIndex: 3, label: "Mantis religiosa" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Orthoptera", "Gryllidae", "Gryllus", "G. campestris"], blankIndex: 3, label: "Grillo campestre" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Hemiptera", "Cicadidae", "Cicada", "C. orni"], blankIndex: 3, label: "Cigarra común" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Coleoptera", "Lucanidae", "Lucanus", "L. cervus"], blankIndex: 3, label: "Ciervo volante" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Hymenoptera", "Vespidae", "Vespa", "V. crabro"], blankIndex: 3, label: "Avispón europeo" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Lepidoptera", "Nymphalidae", "Vanessa", "V. atalanta"], blankIndex: 3, label: "Almirante rojo" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Coleoptera", "Lampyridae", "Lampyris", "L. noctiluca"], blankIndex: 3, label: "Luciérnaga europea" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Phasmatodea", "Phylliidae", "Phyllium", "P. philippinicum"], blankIndex: 3, label: "Insecto hoja" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Lepidoptera", "Papilionidae", "Papilio", "P. machaon"], blankIndex: 3, label: "Cola de golondrina" },
+  const CHAINS: { chain: string[]; blankIndex: number; label: string; specimenId: string }[] = [
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Coleoptera", "Scarabaeidae", "Goliathus", "G. goliatus"], blankIndex: 3, label: "Goliat", specimenId: "goliathus-goliatus" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Lepidoptera", "Nymphalidae", "Morpho", "M. menelaus"], blankIndex: 3, label: "Morpho azul", specimenId: "morpho-menelaus" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Hymenoptera", "Apidae", "Apis", "A. mellifera"], blankIndex: 3, label: "Abeja europea", specimenId: "apis-mellifera" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Odonata", "Aeshnidae", "Anax", "A. imperator"], blankIndex: 3, label: "Libélula emperador", specimenId: "anax-imperator" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Mantodea", "Mantidae", "Mantis", "M. religiosa"], blankIndex: 3, label: "Mantis religiosa", specimenId: "mantis-religiosa" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Orthoptera", "Gryllidae", "Gryllus", "G. campestris"], blankIndex: 3, label: "Grillo campestre", specimenId: "gryllus-campestris" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Hemiptera", "Cicadidae", "Cicada", "C. orni"], blankIndex: 3, label: "Cigarra común", specimenId: "cicada-orni" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Coleoptera", "Lucanidae", "Lucanus", "L. cervus"], blankIndex: 3, label: "Ciervo volante", specimenId: "lucanus-cervus" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Hymenoptera", "Vespidae", "Vespa", "V. crabro"], blankIndex: 3, label: "Avispón europeo", specimenId: "vespa-crabro" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Lepidoptera", "Nymphalidae", "Vanessa", "V. atalanta"], blankIndex: 3, label: "Almirante rojo", specimenId: "vanessa-atalanta" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Coleoptera", "Lampyridae", "Lampyris", "L. noctiluca"], blankIndex: 3, label: "Luciérnaga europea", specimenId: "lampyris-noctiluca" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Phasmatodea", "Phylliidae", "Phyllium", "P. philippinicum"], blankIndex: 3, label: "Insecto hoja", specimenId: "phyllium-philippinicum" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Lepidoptera", "Papilionidae", "Papilio", "P. machaon"], blankIndex: 3, label: "Cola de golondrina", specimenId: "papilio-machaon" },
     // Familia como blank
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Coleoptera", "___", "Dynastes", "D. hercules"], blankIndex: 4, label: "Escarabajo hércules" },
-    { chain: ["Animalia", "Arthropoda", "Insecta", "Lepidoptera", "___", "Papilio", "P. machaon"], blankIndex: 4, label: "Cola de golondrina" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Coleoptera", "___", "Dynastes", "D. hercules"], blankIndex: 4, label: "Escarabajo hércules", specimenId: "dynastes-hercules" },
+    { chain: ["Animalia", "Arthropoda", "Insecta", "Lepidoptera", "___", "Papilio", "P. machaon"], blankIndex: 4, label: "Cola de golondrina", specimenId: "papilio-machaon" },
   ];
 
   const allOrders = [...new Set(SPECIMENS.map((s) => s.order))];
@@ -316,6 +320,7 @@ export function generateTaxonomyChain(): QuizQuestion[] {
       explanation: `El ${rankName} correcto es "${correctAnswer}".`,
       displayLabel: c.label,
       chainLevel: rankName,
+      specimenId: c.specimenId,
     });
   }
 
