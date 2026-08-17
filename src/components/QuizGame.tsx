@@ -557,23 +557,26 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
               <motion.div
                 initial={{ y: -10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className={`flex items-center gap-2 border-l-4 px-3 py-1.5 text-[11px] font-semibold ${
+                className={`border-l-4 px-3 py-1.5 text-[11px] font-semibold ${
                   feedback.correct
                     ? "border-sage bg-sage/10 text-sage"
                     : "border-rust bg-rust/10 text-rust"
                 }`}
               >
-                <span className="shrink-0">
-                  {feedback.correct ? "✓" : "✕"}
-                </span>
-                <span className="truncate">
-                  {feedback.correct
-                    ? `+${feedback.pointsEarned} pts`
-                    : feedback.correctAnswer}
-                </span>
-                {feedback.correct && streak >= 3 && (
-                  <span className="shrink-0 text-amber">🔥×{streak >= 10 ? 3 : streak >= 5 ? 2 : 1.5}</span>
-                )}
+                <div className="flex items-center gap-2">
+                  <span className="shrink-0">
+                    {feedback.correct ? "✓" : "✕"}
+                  </span>
+                  <span className="truncate">
+                    {feedback.correct
+                      ? `+${feedback.pointsEarned} pts`
+                      : feedback.correctAnswer}
+                  </span>
+                  {feedback.correct && streak >= 3 && (
+                    <span className="shrink-0 text-amber">🔥×{streak >= 10 ? 3 : streak >= 5 ? 2 : 1.5}</span>
+                  )}
+                </div>
+                <p className="mt-0.5 text-[10px] opacity-70 leading-tight truncate">{feedback.explanation}</p>
               </motion.div>
             ) : (
               <div className="h-2 bg-ink/80">
@@ -598,14 +601,17 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub, quizPo
                 : "border-rust bg-rust/10 text-rust"
             }`}
           >
-            <span className="shrink-0">
-              {feedback.correct ? "✓" : "✕"}
-            </span>{" "}
-            <span className="truncate">
-              {feedback.correct
-                ? `+${feedback.pointsEarned} pts`
-                : feedback.correctAnswer}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="shrink-0">
+                {feedback.correct ? "✓" : "✕"}
+              </span>
+              <span className="truncate">
+                {feedback.correct
+                  ? `+${feedback.pointsEarned} pts`
+                  : feedback.correctAnswer}
+              </span>
+            </div>
+            <p className="mt-0.5 text-[10px] opacity-70 leading-tight truncate">{feedback.explanation}</p>
           </motion.div>
         )}
 
