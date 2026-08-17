@@ -3,6 +3,7 @@ import confetti from "canvas-confetti";
 import type { QuizMode } from "../data/quizBank";
 import { QUIZ_MODES } from "../data/quizBank";
 import { getLevel, type PlayerProfile } from "../lib/quizEngine";
+import { sfxLevelUp } from "../lib/audio";
 
 interface Props {
   mode: QuizMode;
@@ -41,6 +42,7 @@ export default function QuizResults({
     if (confettiFired.current) return;
     confettiFired.current = true;
     if (accuracy >= 70) {
+      sfxLevelUp();
       const duration = accuracy >= 90 ? 3000 : 1500;
       const end = Date.now() + duration;
       const frame = () => {
