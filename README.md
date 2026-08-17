@@ -9,9 +9,16 @@ Compilada para el repositorio [`SysJoL/insecta-app-web`](https://github.com/SysJ
   observadas del mundo desde la **iNaturalist API v1**, con fotografía de campo verificada,
   nombre vulgar y conteo de observaciones.
 - **Ficha académica** por espécimen: linaje taxonómico completo (Reino → Especie),
-  resumen enciclopédico en español vía **Wikipedia REST API**, galería fotográfica con
-  crédito del observador y licencia Creative Commons, y enlaces cruzados a
-  **iNaturalist, GBIF, EOL y Wikipedia**.
+  **semáforo IUCN (LC→EX) vía GBIF**, resumen enciclopédico en español vía
+  **Wikipedia REST API**, galería fotográfica con crédito del observador y licencia
+  Creative Commons, y enlaces cruzados a **iNaturalist, GBIF, EOL y Wikipedia**.
+- **Ciencia en vivo** (mesa de análisis):
+  - *Observatorio*: mapa de avistamientos georreferenciados sobre **Leaflet + OpenStreetMap**,
+    fenología mensual (histograma de cuándo vuela cada especie) y especies cercanas por
+    geolocalización con radio configurable (5/25/100 km).
+  - *Comparador*: dos taxones lado a lado con diferencial de observaciones destacado.
+  - *Árbol taxonómico*: explorador orden → familia → género → especie servido por
+    `/taxa/children`, con miga de pan navegable.
 - **Caja de colección** y **cuaderno de campo** con persistencia en `localStorage`.
 - **Búsqueda** contra la API con pausa tipográfica, ordenación y actualización manual.
 - **Cajón local de respaldo**: 14 especímenes curados con ilustración SVG propia si la red falla.

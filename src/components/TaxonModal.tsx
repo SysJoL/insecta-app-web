@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { CardTaxon, TaxonDetail, WikiSummary } from "../lib/inat";
 import { EXTERNAL, fetchTaxonDetail, fetchWikiSummary, fmtFull, glyphForOrder, licenseLabel } from "../lib/inat";
+import { IUCN_CATS, IUCN_META, fetchIucn, type IucnResult } from "../lib/inatLive";
 import { OrderGlyph } from "./glyphs";
 
 interface Props {
@@ -26,6 +27,7 @@ const RANK_ES: Record<string, string> = {
 export default function TaxonModal({ taxon, collected, onClose, onToggleCollect }: Props) {
   const [detail, setDetail] = useState<TaxonDetail | null>(null);
   const [wiki, setWiki] = useState<WikiSummary | null>(null);
+  const [iucn, setIucn] = useState<IucnResult | null>(null);
   const [state, setState] = useState<LoadState>("loading");
   const [mainPhoto, setMainPhoto] = useState(0);
 
@@ -44,25 +46,26 @@ export default function TaxonModal({ taxon, collected, onClose, onToggleCollect 
     let alive = true;
     setDetail(null);
     setWiki(null);
+    setIucn(null);
     setMainPhoto(0);
     setState("loading");
 
-    if (taxon.curated) {
-      // cajón local: no hay detalle remoto
-      setState("ready");
-      return;
-    }
-
-    const inatId = Number(taxon.id.replace("inat:", ""));
     (async () => {
       try {
-        const [d, w] = await Promise.all([
-          fetchTaxonDetail(inatId),
-          fetchWikiSummary(taxon.latin).catch(() => ({ extract: null, url: null, thumbnail: null })),
-        ]);
+        const detailP: Promise<TaxonDetail | null> = taxon.curated
+          ? Promise.resolve(null)
+          : fetchTaxonDetail(Number(taxon.id.replace("inat:", "")));
+        const wikiP = fetchWikiSummary(taxon.latin).catch(() => ({
+          extract: null,
+          url: null,
+          thumbnail: null,
+        }));
+        const iucnP = fetchIucn(taxon.latin);
+        const [d, w, iu] = await Promise.all([detailP, wikiP, iucnP]);
         if (!alive) return;
         setDetail(d);
         setWiki(w);
+        setIucn(iu);
         setState("ready");
       } catch {
         if (alive) setState("error");
@@ -223,6 +226,62 @@ export default function TaxonModal({ taxon, collected, onClose, onToggleCollect 
                 </ol>
               </div>
             )}
+
+            {/* conservación IUCN */}
+            <div className="mt-5 border border-moss/70 bg-ink/40 p-4">
+              <p className="mb-3 text-[11px] tracking-[0.24em] text-sage/70 uppercase">
+                Conservación · Lista Roja IUCN vía GBIF
+              </p>
+              {iucn === null && state === "loading" ? (
+                <div className="shimmer h-9 w-full" />
+              ) : iucn?.category ? (
+                <>
+                  <div className="flex flex-wrap gap-1.5">
+                    {IUCN_CATS.map((c) => {
+                      const meta = IUCN_META[c];
+                      const on = c === iucn.category;
+                      return (
+                        <span
+                          key={c}
+                          title={meta.label}
+                          className={`px-2.5 py-1.5 text-[11px] font-bold tracking-[0.14em] transition-all ${
+                            on
+                              ? "scale-110 text-ink shadow-[0_6px_18px_rgba(0,0,0,0.45)]"
+                              : "border border-moss text-bone/35"
+                          }`}
+                          style={on ? { background: meta.color } : undefined}
+                        >
+                          {c}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-2.5 text-sm text-bone/80">
+                    <strong style={{ color: IUCN_META[iucn.category]?.color ?? "#e5a83b" }}>
+                      {IUCN_META[iucn.category]?.label ?? iucn.category}
+                    </strong>
+                    {iucn.gbifKey && (
+                      <>
+                        {" · "}
+                        <a
+                          href={`https://www.gbif.org/species/${iucn.gbifKey}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-semibold text-amber transition-colors hover:text-honey"
+                        >
+                          ficha GBIF ↗
+                        </a>
+                      </>
+                    )}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-bone/55 italic">
+                  Sin evaluación en la Lista Roja según GBIF (NE). No implica bajo riesgo: muchos
+                  taxones aún no han sido evaluados.
+                </p>
+              )}
+            </div>
 
             {/* resumen de Wikipedia */}
             <div className="mt-5">

@@ -14,6 +14,9 @@ import Fireflies from "./components/Fireflies";
 import TaxonCard from "./components/TaxonCard";
 import TaxonModal from "./components/TaxonModal";
 import DichotomousKey from "./components/DichotomousKey";
+import Observatory from "./components/Observatory";
+import SpeciesCompare from "./components/SpeciesCompare";
+import TaxonomyTree from "./components/TaxonomyTree";
 import AnatomyDiagram from "./components/AnatomyDiagram";
 import ScaleTool from "./components/ScaleTool";
 import ExportPanel from "./components/ExportPanel";
@@ -61,6 +64,14 @@ const CURATED_CARDS: CardTaxon[] = SPECIMENS.map((s) => ({
   curated: true,
   glyphKey: s.orderKey,
 }));
+
+const LAB_TABS = [
+  { id: "obs", n: "01", label: "Observatorio en vivo" },
+  { id: "cmp", n: "02", label: "Comparador" },
+  { id: "tree", n: "03", label: "Árbol taxonómico" },
+] as const;
+
+type LabTool = (typeof LAB_TABS)[number]["id"];
 
 /* ---------------- piezas pequeñas ---------------- */
 
@@ -324,6 +335,9 @@ export default function App() {
     showToast("Anotación eliminada");
   };
 
+  /* ---------- mesa de ciencia en vivo ---------- */
+  const [labTool, setLabTool] = useState<LabTool>("obs");
+
   /* ---------- PWA · instalación ---------- */
   const [canInstall, setCanInstall] = useState(false);
   const installEvt = useRef<(Event & { prompt: () => Promise<unknown> }) | null>(null);
@@ -421,6 +435,7 @@ export default function App() {
             <nav className="hidden items-center gap-6 text-[12px] font-semibold tracking-[0.18em] uppercase md:flex">
               {[
                 ["Atlas", "#atlas"],
+                ["Ciencia", "#ciencia"],
                 ["Herramientas", "#herramientas"],
                 ["Caja", "#caja"],
                 ["Cuaderno", "#cuaderno"],
@@ -874,6 +889,50 @@ export default function App() {
                 ))}
               </div>
             )}
+          </div>
+        </section>
+
+        {/* ---------- ciencia en vivo ---------- */}
+        <section id="ciencia" className="relative border-t border-moss/60 bg-pine/40">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+            <Reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-bold tracking-[0.3em] text-sage uppercase">
+                  Mesa de análisis · iNaturalist + GBIF + OpenStreetMap
+                </p>
+                <h2 className="mt-1 font-display text-4xl font-black text-parch sm:text-5xl">
+                  Ciencia en vivo<span className="text-amber">.</span>
+                </h2>
+              </div>
+              <p className="max-w-md text-sm text-bone/60">
+                Cinco instrumentos sobre datos abiertos: dónde se observa cada especie
+                (mapa), cuándo vuela (fenología), qué hay en tu zona (geolocalización),
+                cómo se comparan dos taxones y su posición en el árbol de la vida.
+              </p>
+            </Reveal>
+
+            <Reveal delay={80} className="mb-6 flex flex-wrap gap-1.5">
+              {LAB_TABS.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setLabTool(t.id)}
+                  className={`flex items-center gap-2.5 border px-4 py-2.5 text-[11px] font-bold tracking-[0.18em] uppercase transition-all ${
+                    labTool === t.id
+                      ? "border-amber bg-amber text-ink shadow-[0_8px_26px_rgba(229,168,59,0.22)]"
+                      : "border-moss text-sage hover:border-amber/50 hover:text-amber"
+                  }`}
+                >
+                  <span className={labTool === t.id ? "opacity-60" : "text-amber/70"}>{t.n}</span>
+                  {t.label}
+                </button>
+              ))}
+            </Reveal>
+
+            <Reveal delay={120}>
+              {labTool === "obs" && <Observatory species={cards} onOpen={setActive} />}
+              {labTool === "cmp" && <SpeciesCompare species={cards} />}
+              {labTool === "tree" && <TaxonomyTree orders={orders} onOpen={setActive} />}
+            </Reveal>
           </div>
         </section>
 
