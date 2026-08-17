@@ -141,14 +141,18 @@ export function toCard(
   };
 }
 
+export type PhotoFilter = "all" | "with" | "without";
+
 export async function fetchTopSpecies(
   orderMap: Map<number, string>,
   orderId: number | null,
+  photoFilter: PhotoFilter = "with",
   perPage = 24
 ): Promise<CardTaxon[]> {
   const taxon = orderId ?? INSECTA_ID;
+  const photoParam = photoFilter === "with" ? "&photos=true" : photoFilter === "without" ? "&photos=false" : "";
   const data = await inatFetch<SpeciesCountsResponse>(
-    `/observations/species_counts?taxon_id=${taxon}&photos=true&verifiable=true&order_by=count&order=desc&per_page=${perPage}`
+    `/observations/species_counts?taxon_id=${taxon}${photoParam}&verifiable=true&order_by=count&order=desc&per_page=${perPage}`
   );
   return data.results.map((r) => toCard(r.taxon, r.count, orderMap));
 }
@@ -170,11 +174,13 @@ interface TaxaSearchResponse {
 export async function searchSpecies(
   query: string,
   orderMap: Map<number, string>,
+  photoFilter: PhotoFilter = "with",
   perPage = 24
 ): Promise<CardTaxon[]> {
   const q = encodeURIComponent(query.trim());
+  const photoParam = photoFilter === "with" ? "&photos=true" : photoFilter === "without" ? "&photos=false" : "";
   const data = await inatFetch<TaxaSearchResponse>(
-    `/taxa?q=${q}&taxon_id=${INSECTA_ID}&rank=species&photos=true&per_page=${perPage}`
+    `/taxa?q=${q}&taxon_id=${INSECTA_ID}&rank=species${photoParam}&per_page=${perPage}`
   );
   return data.results.map((t) =>
     toCard(

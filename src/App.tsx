@@ -7,6 +7,7 @@ import {
   searchSpecies,
   type CardTaxon,
   type OrderInfo,
+  type PhotoFilter,
 } from "./lib/inat";
 import { OrderGlyph, PinMark } from "./components/glyphs";
 import { Reveal } from "./components/Reveal";
@@ -125,6 +126,7 @@ export default function App() {
   const [activeOrder, setActiveOrder] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("obs");
+  const [photoFilter, setPhotoFilter] = useState<PhotoFilter>("with");
 
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
@@ -156,6 +158,9 @@ export default function App() {
 
   const reqId = useRef(0);
 
+  const photoFilterRef = useRef<PhotoFilter>("with");
+  const sortKeyRef = useRef<SortKey>("obs");
+
   const refresh = useCallback(
     async (orderId: number | null, q: string) => {
       const my = ++reqId.current;
@@ -163,8 +168,8 @@ export default function App() {
       setLocalMode(false);
       try {
         const data = q.trim()
-          ? await searchSpecies(q, orderMapRef.current)
-          : await fetchTopSpecies(orderMapRef.current, orderId);
+          ? await searchSpecies(q, orderMapRef.current, photoFilterRef.current)
+          : await fetchTopSpecies(orderMapRef.current, orderId, photoFilterRef.current);
         if (my !== reqId.current) return;
         setCards(data);
         setApiStatus("online");
@@ -214,6 +219,12 @@ export default function App() {
     setActiveOrder(id);
     setQuery("");
     refresh(id, "");
+  };
+
+  const handlePhotoFilter = (f: PhotoFilter) => {
+    setPhotoFilter(f);
+    photoFilterRef.current = f;
+    refresh(activeOrder, query);
   };
 
   const handleLocalMode = () => {
@@ -692,7 +703,7 @@ export default function App() {
             </div>
 
             {/* desktop: full grid */}
-            <div className="hidden grid-cols-[1fr_1fr] items-center gap-3 sm:grid">
+            <div className="hidden grid-cols-[1fr_auto_1fr] items-center gap-3 sm:grid">
               <label className="relative w-full">
                 <svg viewBox="0 0 16 16" className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sage" fill="none" stroke="currentColor" strokeWidth="1.6">
                   <circle cx="7" cy="7" r="4.5" />
@@ -707,7 +718,24 @@ export default function App() {
                 />
               </label>
 
-              <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+              {/* photo filter segmented */}
+              <div className="flex border border-moss">
+                {(["with", "all", "without"] as const).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => handlePhotoFilter(v)}
+                    className={`px-3 py-2 text-[10px] font-semibold tracking-[0.12em] uppercase transition-all ${
+                      photoFilter === v
+                        ? "bg-amber text-ink"
+                        : "text-sage hover:text-amber"
+                    }`}
+                  >
+                    {v === "with" ? "Con foto" : v === "without" ? "Sin foto" : "Todas"}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3 justify-end">
                 <label className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.16em] text-sage uppercase">
                   Ordenar
                   <select
@@ -1194,6 +1222,8 @@ export default function App() {
         onClose={() => setFilterSheetOpen(false)}
         sortKey={sortKey}
         onSortKey={setSortKey}
+        photoFilter={photoFilter}
+        onPhotoFilter={handlePhotoFilter}
         onRefresh={() => refresh(activeOrder, query)}
         onOrder={handleOrder}
         loading={loading}

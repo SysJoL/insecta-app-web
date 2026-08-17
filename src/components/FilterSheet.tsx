@@ -1,11 +1,13 @@
 import type { SortKey } from "../App";
-import type { OrderInfo } from "../lib/inat";
+import type { OrderInfo, PhotoFilter } from "../lib/inat";
 
 interface FilterSheetProps {
   open: boolean;
   onClose: () => void;
   sortKey: SortKey;
   onSortKey: (k: SortKey) => void;
+  photoFilter: PhotoFilter;
+  onPhotoFilter: (f: PhotoFilter) => void;
   onRefresh: () => void;
   onOrder: (id: number | null) => void;
   loading: boolean;
@@ -20,6 +22,8 @@ export default function FilterSheet({
   onClose,
   sortKey,
   onSortKey,
+  photoFilter,
+  onPhotoFilter,
   onRefresh,
   onOrder,
   loading,
@@ -56,6 +60,26 @@ export default function FilterSheet({
             <option value="name">Nombre A–Z</option>
           </select>
         </label>
+
+        {/* photo filter */}
+        <p className="mb-2 text-[11px] font-bold tracking-[0.16em] text-sage uppercase">
+          Mostrar
+        </p>
+        <div className="mb-4 flex border border-moss">
+          {(["with", "all", "without"] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => onPhotoFilter(v)}
+              className={`flex-1 py-2 text-[10px] font-semibold tracking-[0.12em] uppercase transition-all ${
+                photoFilter === v
+                  ? "bg-amber text-ink"
+                  : "text-sage hover:text-amber"
+              }`}
+            >
+              {v === "with" ? "Con foto" : v === "without" ? "Sin foto" : "Todas"}
+            </button>
+          ))}
+        </div>
 
         {/* refresh */}
         <button
