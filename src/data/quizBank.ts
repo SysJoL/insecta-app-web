@@ -69,6 +69,8 @@ export interface QuizQuestion {
   image?: string;
   /** Nombre científico para buscar foto precisa en iNaturalist */
   latinName?: string;
+  /** Para modo evolución: texto del entorno (separate rendering) */
+  envText?: string;
 }
 
 export interface QuizModeInfo {
@@ -628,7 +630,8 @@ export function generateEvolution(): QuizQuestion[] {
       ? `${latinParts[0].charAt(0).toUpperCase() + latinParts[0].slice(1)} ${latinParts.slice(1).join(" ")}`
       : sc.specimenId;
     return {
-      question: `Entorno: "${sc.env}"\n\n¿Qué adaptación evolutiva es más ventajosa?`,
+      question: "¿Qué adaptación evolutiva es más ventajosa?",
+      envText: sc.env,
       options,
       correctIndex: options.indexOf(sc.correct),
       explanation: sc.explanation,

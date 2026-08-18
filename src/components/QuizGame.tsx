@@ -810,6 +810,18 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
                 </div>
               </div>
             </div>
+          ) : q.envText ? (
+            <div className="mb-8 text-center">
+              <p className="mb-2 text-[10px] font-bold tracking-[0.14em] text-amber uppercase">
+                Entorno
+              </p>
+              <blockquote className="mb-4 border-l-2 border-amber/40 bg-amber/5 px-4 py-3 text-base italic leading-relaxed text-bone/80 sm:text-lg">
+                &ldquo;{q.envText}&rdquo;
+              </blockquote>
+              <p className="font-display text-lg font-bold leading-snug text-parch sm:text-xl">
+                <ItalicLatin text={q.question} />
+              </p>
+            </div>
           ) : (
             <p className="mb-8 text-center font-display text-xl font-bold leading-snug text-parch sm:text-2xl whitespace-pre-line">
               <ItalicLatin text={q.question} />
