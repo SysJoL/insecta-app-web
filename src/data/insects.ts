@@ -11,7 +11,12 @@ export type GlyphKey =
   | "cicada"
   | "leaf"
   | "fly"
-  | "bug";
+  | "bug"
+  | "lacewing"
+  | "earwig"
+  | "flea"
+  | "mayfly"
+  | "cockroach";
 
 export interface Insect {
   id: string;

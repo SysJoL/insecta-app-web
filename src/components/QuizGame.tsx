@@ -748,6 +748,75 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
                       <path d="M32 29v30" strokeWidth={1.5} />
                     </g>
                   )}
+                  {q.glyphKey === "lacewing" && (
+                    <g>
+                      <path d="M32 8C28 2 22 0 18 2" />
+                      <path d="M32 8C36 2 42 0 46 2" />
+                      <circle cx="32" cy="10" r="3.5" />
+                      <circle cx="29.5" cy="9.5" r="2" fill="currentColor" stroke="none" />
+                      <circle cx="34.5" cy="9.5" r="2" fill="currentColor" stroke="none" />
+                      <ellipse cx="32" cy="16" rx="3" ry="2.5" />
+                      <path d="M29 17C18 14 8 18 6 28 4 36 10 42 20 40 28 38 30 30 29 17" />
+                      <path d="M35 17C46 14 56 18 58 28 60 36 54 42 44 40 36 38 34 30 35 17" />
+                      <path d="M32 18.5C33 22 34 28 33 34 32 38 31 42 30 46 29 48 30 49 32 49 34 49 35 48 34 46 33 42 32 38 31 34 30 28 31 22 32 18.5" />
+                    </g>
+                  )}
+                  {q.glyphKey === "earwig" && (
+                    <g>
+                      <circle cx="32" cy="9" r="4" />
+                      <circle cx="29" cy="8" r="1.5" fill="currentColor" stroke="none" />
+                      <circle cx="35" cy="8" r="1.5" fill="currentColor" stroke="none" />
+                      <ellipse cx="32" cy="15" rx="4.5" ry="2.5" />
+                      <rect x="28" y="17" width="8" height="5" rx="0.5" />
+                      <path d="M32 22C33 26 34 30 33 34 32 38 31 42 30 46 29 48 28 49 28 50" />
+                      <path d="M32 22C31 26 30 30 31 34 32 38 33 42 34 46 35 48 36 49 36 50" />
+                      <path d="M28 50C24 52 20 54 17 50 15 48 16 44 19 42" />
+                      <path d="M36 50C40 52 44 54 47 50 49 48 48 44 45 42" />
+                    </g>
+                  )}
+                  {q.glyphKey === "flea" && (
+                    <g>
+                      <ellipse cx="19" cy="16" rx="5" ry="6" />
+                      <circle cx="17" cy="14" r="1.5" fill="currentColor" stroke="none" />
+                      <ellipse cx="26" cy="18" rx="5" ry="7" />
+                      <path d="M30 12C38 12 42 16 42 22 42 28 38 34 32 36 28 37 26 34 26 28 26 22 28 14 30 12" />
+                      <path d="M28 18L20 26C18 28 16 30 14 28" strokeWidth={3} />
+                      <path d="M14 28L10 38L8 44" />
+                      <path d="M8 44L6 50" />
+                      <path d="M6 50L4 52M6 50L8 52" />
+                    </g>
+                  )}
+                  {q.glyphKey === "mayfly" && (
+                    <g>
+                      <circle cx="32" cy="8" r="4" />
+                      <circle cx="29" cy="7" r="2.5" fill="currentColor" stroke="none" />
+                      <circle cx="35" cy="7" r="2.5" fill="currentColor" stroke="none" />
+                      <path d="M30 13C22 8 14 4 12 8 10 12 16 16 20 18 24 20 28 16 30 13" />
+                      <path d="M34 13C42 8 50 4 52 8 54 12 48 16 44 18 40 20 36 16 34 13" />
+                      <path d="M32 16C33 20 34 26 33 32 32 36 31 38 30 40" />
+                      <path d="M32 16C31 20 30 26 31 32 32 36 33 38 34 40" />
+                      <path d="M30 40C26 46 20 54 14 62" strokeWidth={1.5} />
+                      <path d="M32 40C32 48 30 56 28 64" strokeWidth={1.5} />
+                      <path d="M34 40C38 46 44 54 50 62" strokeWidth={1.5} />
+                    </g>
+                  )}
+                  {q.glyphKey === "cockroach" && (
+                    <g>
+                      <path d="M24 14C18 6 10 2 4 4" strokeWidth={1.5} />
+                      <path d="M40 14C46 6 54 2 60 4" strokeWidth={1.5} />
+                      <ellipse cx="32" cy="16" rx="8" ry="5" />
+                      <circle cx="26" cy="15" r="1.5" fill="currentColor" stroke="none" />
+                      <circle cx="38" cy="15" r="1.5" fill="currentColor" stroke="none" />
+                      <ellipse cx="32" cy="20" rx="14" ry="7" />
+                      <ellipse cx="32" cy="34" rx="13" ry="12" />
+                      <path d="M22 24C18 28 16 34 18 42 20 46 24 48 28 46" />
+                      <path d="M42 24C46 28 48 34 46 42 44 46 40 48 36 46" />
+                      <path d="M28 28L36 28" />
+                      <path d="M27 32L37 32" />
+                      <path d="M26 36L38 36" />
+                      <path d="M27 40L37 40" />
+                    </g>
+                  )}
                 </svg>
               </div>
             </div>

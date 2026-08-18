@@ -293,6 +293,11 @@ const ORDER_GLYPHS: Record<string, GlyphKey> = {
   Orthoptera: "grasshopper",
   Hemiptera: "cicada",
   Phasmatodea: "leaf",
+  Neuroptera: "lacewing",
+  Dermaptera: "earwig",
+  Siphonaptera: "flea",
+  Ephemeroptera: "mayfly",
+  Blattodea: "cockroach",
 };
 
 export function glyphForOrder(orderName: string): GlyphKey {

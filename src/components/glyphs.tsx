@@ -153,6 +153,177 @@ export function OrderGlyph({ k, className = "" }: Props) {
           <path d="M32 58c1 3 3 4 5 4" />
         </g>
       )}
+      {k === "lacewing" && (
+        <g>
+          <path d="M32 8C28 2 22 0 18 2" />
+          <path d="M32 8C36 2 42 0 46 2" />
+          <circle cx="32" cy="10" r="3.5" />
+          <circle cx="29.5" cy="9.5" r="2" fill="currentColor" stroke="none" />
+          <circle cx="34.5" cy="9.5" r="2" fill="currentColor" stroke="none" />
+          <ellipse cx="32" cy="16" rx="3" ry="2.5" />
+          <path d="M29 17C18 14 8 18 6 28 4 36 10 42 20 40 28 38 30 30 29 17" />
+          <path d="M27 20C20 18 14 21 13 28" />
+          <path d="M26 25C22 24 18 26 17 32" />
+          <path d="M27 30C24 30 21 32 20 36" />
+          <path d="M35 17C46 14 56 18 58 28 60 36 54 42 44 40 36 38 34 30 35 17" />
+          <path d="M37 20C44 18 50 21 51 28" />
+          <path d="M38 25C42 24 46 26 47 32" />
+          <path d="M37 30C40 30 43 32 44 36" />
+          <path d="M32 18.5C33 22 34 28 33 34 32 38 31 42 30 46 29 48 30 49 32 49 34 49 35 48 34 46 33 42 32 38 31 34 30 28 31 22 32 18.5" />
+          <path d="M29 15L22 18L18 16" />
+          <path d="M29 16L21 21L17 20" />
+          <path d="M29 17L23 24L19 24" />
+          <path d="M35 15L42 18L46 16" />
+          <path d="M35 16L43 21L47 20" />
+          <path d="M35 17L41 24L45 24" />
+        </g>
+      )}
+      {k === "earwig" && (
+        <g>
+          <path d="M27 7C23 4 20 2 17 3" />
+          <path d="M37 7C41 4 44 2 47 3" />
+          <circle cx="32" cy="9" r="4" />
+          <circle cx="29" cy="8" r="1.5" fill="currentColor" stroke="none" />
+          <circle cx="35" cy="8" r="1.5" fill="currentColor" stroke="none" />
+          <ellipse cx="32" cy="15" rx="4.5" ry="2.5" />
+          <rect x="28" y="17" width="8" height="5" rx="0.5" />
+          <path d="M32 22C33 26 34 30 33 34 32 38 31 42 30 46 29 48 28 49 28 50" />
+          <path d="M32 22C31 26 30 30 31 34 32 38 33 42 34 46 35 48 36 49 36 50" />
+          <path d="M31 26L33 26" />
+          <path d="M30.5 30L33.5 30" />
+          <path d="M30 34L34 34" />
+          <path d="M29.5 38L34.5 38" />
+          <path d="M29 42L35 42" />
+          <path d="M28.5 46L35.5 46" />
+          <path d="M28 50C24 52 20 54 17 50 15 48 16 44 19 42" />
+          <path d="M36 50C40 52 44 54 47 50 49 48 48 44 45 42" />
+          <path d="M28 14L20 17L16 16" />
+          <path d="M28 15L19 20L15 21" />
+          <path d="M28 17L20 24L16 26" />
+          <path d="M36 14L44 17L48 16" />
+          <path d="M36 15L45 20L49 21" />
+          <path d="M36 17L44 24L48 26" />
+        </g>
+      )}
+      {k === "flea" && (
+        <g>
+          <path d="M18 14C14 10 12 6 14 3" />
+          <path d="M16 20L12 22L10 20" />
+          <ellipse cx="19" cy="16" rx="5" ry="6" />
+          <circle cx="17" cy="14" r="1.5" fill="currentColor" stroke="none" />
+          <ellipse cx="26" cy="18" rx="5" ry="7" />
+          <path d="M30 12C38 12 42 16 42 22 42 28 38 34 32 36 28 37 26 34 26 28 26 22 28 14 30 12" />
+          <path d="M30 16C34 16 38 18 40 18" />
+          <path d="M29 20C34 20 39 22 41 22" />
+          <path d="M28 24C33 24 39 26 41 26" />
+          <path d="M28 28C33 28 38 30 40 30" />
+          <path d="M29 32C33 32 37 34 38 34" />
+          <path d="M22 14L16 18L14 22L12 28" />
+          <path d="M12 28L10 30M12 28L14 30" />
+          <path d="M24 16L18 22L16 28L14 34" />
+          <path d="M14 34L12 36M14 34L16 36" />
+          <path d="M28 18L20 26C18 28 16 30 14 28" strokeWidth={3} />
+          <path d="M14 28L10 38L8 44" />
+          <path d="M8 44L6 50" />
+          <path d="M6 50L4 52M6 50L8 52" />
+          <path d="M26 16L18 24C16 26 14 28 12 26" strokeWidth={2.5} />
+          <path d="M12 26L8 36L6 42" />
+          <path d="M6 42L4 48" />
+          <path d="M4 48L2 50M4 48L6 50" />
+          <path d="M15 20L12 21" />
+          <path d="M15 22L11 23" />
+          <path d="M15 24L12 25" />
+          <path d="M16 26L13 27" />
+        </g>
+      )}
+      {k === "mayfly" && (
+        <g>
+          <path d="M30 6C26 2 23 0 20 1" />
+          <path d="M34 6C38 2 41 0 44 1" />
+          <circle cx="32" cy="8" r="4" />
+          <circle cx="29" cy="7" r="2.5" fill="currentColor" stroke="none" />
+          <circle cx="35" cy="7" r="2.5" fill="currentColor" stroke="none" />
+          <ellipse cx="32" cy="14" rx="3.5" ry="2.5" />
+          <path d="M30 13C22 8 14 4 12 8 10 12 16 16 20 18 24 20 28 16 30 13" />
+          <path d="M25 9C23 10 22 12 23 14" />
+          <path d="M22 11C20 13 20 15 22 16" />
+          <path d="M27 11C26 13 26 14 27 15" />
+          <path d="M34 13C42 8 50 4 52 8 54 12 48 16 44 18 40 20 36 16 34 13" />
+          <path d="M39 9C41 10 42 12 41 14" />
+          <path d="M42 11C44 13 44 15 42 16" />
+          <path d="M37 11C38 13 38 14 37 15" />
+          <path d="M29 14C24 10 18 8 17 11 16 14 20 16 23 17 26 18 28 16 29 14" />
+          <path d="M35 14C40 10 46 8 47 11 48 14 44 16 41 17 38 18 36 16 35 14" />
+          <path d="M32 16C33 20 34 26 33 32 32 36 31 38 30 40" />
+          <path d="M32 16C31 20 30 26 31 32 32 36 33 38 34 40" />
+          <path d="M31.5 20L34.5 20" />
+          <path d="M31 24L35 24" />
+          <path d="M30.5 28L35.5 28" />
+          <path d="M30 32L36 32" />
+          <path d="M30 36L34 36" />
+          <path d="M30 40C26 46 20 54 14 62" strokeWidth={1.5} />
+          <path d="M32 40C32 48 30 56 28 64" strokeWidth={1.5} />
+          <path d="M34 40C38 46 44 54 50 62" strokeWidth={1.5} />
+          <path d="M29 13L22 16L18 15" />
+          <path d="M29 14L21 19L17 19" />
+          <path d="M29 15L22 22L18 23" />
+          <path d="M35 13L42 16L46 15" />
+          <path d="M35 14L43 19L47 19" />
+          <path d="M35 15L42 22L46 23" />
+        </g>
+      )}
+      {k === "cockroach" && (
+        <g>
+          <path d="M24 14C18 6 10 2 4 4" strokeWidth={1.5} />
+          <path d="M24 14C16 8 8 6 2 10" strokeWidth={1.5} />
+          <path d="M40 14C46 6 54 2 60 4" strokeWidth={1.5} />
+          <path d="M40 14C48 8 56 6 62 10" strokeWidth={1.5} />
+          <ellipse cx="32" cy="16" rx="8" ry="5" />
+          <circle cx="26" cy="15" r="1.5" fill="currentColor" stroke="none" />
+          <circle cx="38" cy="15" r="1.5" fill="currentColor" stroke="none" />
+          <ellipse cx="32" cy="20" rx="14" ry="7" />
+          <path d="M22 20C24 18 28 17 32 17 36 17 40 18 42 20" />
+          <ellipse cx="32" cy="34" rx="13" ry="12" />
+          <path d="M22 24C18 28 16 34 18 42 20 46 24 48 28 46" />
+          <path d="M42 24C46 28 48 34 46 42 44 46 40 48 36 46" />
+          <path d="M21 28C19 32 19 38 20 42" />
+          <path d="M23 26C21 30 21 36 22 42" />
+          <path d="M25 25C24 30 24 36 25 44" />
+          <path d="M43 28C45 32 45 38 44 42" />
+          <path d="M41 26C43 30 43 36 42 42" />
+          <path d="M39 25C40 30 40 36 39 44" />
+          <path d="M28 28L36 28" />
+          <path d="M27 32L37 32" />
+          <path d="M26 36L38 36" />
+          <path d="M27 40L37 40" />
+          <path d="M26 46C24 48 22 48 20 47" />
+          <path d="M38 46C40 48 42 48 44 47" />
+          <path d="M24 18L16 14L12 10" />
+          <path d="M18 14L15 12" />
+          <path d="M16 13L13 11" />
+          <path d="M14 11L12 9" />
+          <path d="M22 22L14 20L10 16" />
+          <path d="M16 20L13 18" />
+          <path d="M14 19L11 17" />
+          <path d="M12 17L10 15" />
+          <path d="M22 30L14 34L10 38" />
+          <path d="M16 33L13 35" />
+          <path d="M14 34L11 36" />
+          <path d="M12 36L10 38" />
+          <path d="M40 18L48 14L52 10" />
+          <path d="M46 14L49 12" />
+          <path d="M48 13L51 11" />
+          <path d="M50 11L52 9" />
+          <path d="M42 22L50 20L54 16" />
+          <path d="M48 20L51 18" />
+          <path d="M50 19L53 17" />
+          <path d="M52 17L54 15" />
+          <path d="M42 30L50 34L54 38" />
+          <path d="M48 33L51 35" />
+          <path d="M50 34L53 36" />
+          <path d="M52 36L54 38" />
+        </g>
+      )}
     </svg>
   );
 }
