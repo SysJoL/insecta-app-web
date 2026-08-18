@@ -55,6 +55,20 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
     scrollToTab(key);
   };
 
+  const downloadImage = async (url: string, name: string) => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${name.replace(/\s+/g, "_")}.jpg`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch {
+      window.open(url, "_blank");
+    }
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -192,6 +206,17 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
               <span className="absolute top-2 left-2 border border-bone/25 bg-ink/70 px-2 py-0.5 text-[10px] font-semibold tracking-[0.18em] text-bone uppercase backdrop-blur-sm">
                 {taxon.orderName}
               </span>
+              {heroSrc && (
+                <button
+                  onClick={() => downloadImage(heroSrc, taxon.latin)}
+                  className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center border border-bone/25 bg-ink/70 text-bone backdrop-blur-sm transition-colors hover:border-amber hover:text-amber"
+                  aria-label="Descargar imagen"
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                    <path d="m12 16l-5-5l1.4-1.45l2.6 2.6V4h2v8.15l2.6-2.6L17 11zm-6 4q-.825 0-1.412-.587T4 18v-3h2v3h12v-3h2v3q0 .825-.587 1.413T18 20z" />
+                  </svg>
+                </button>
+              )}
             </div>
 
             {heroAttribution && (
