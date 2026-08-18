@@ -423,7 +423,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
               onClick={onHub}
               className="border border-amber bg-amber py-3 text-xs font-bold tracking-[0.16em] text-ink uppercase transition-all hover:bg-honey"
             >
-              Volver al museo
+              Volver a la mesa
             </button>
           </div>
         </div>
@@ -468,7 +468,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
               onClick={onHub}
               className="border border-moss py-3 text-xs font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:border-sage hover:text-parch"
             >
-              Volver al museo
+              Volver a la mesa
             </button>
           </div>
         </div>

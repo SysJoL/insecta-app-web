@@ -74,6 +74,9 @@ export default function Quiz({ profile, onProfileUpdate, orderMap }: Props) {
 
   const handleBackToHub = () => {
     setView("hub");
+    setTimeout(() => {
+      document.getElementById("quiz")?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
   };
 
   // Lock body scroll when game is active
@@ -296,7 +299,7 @@ export default function Quiz({ profile, onProfileUpdate, orderMap }: Props) {
                 <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" stroke="currentColor" fill="none" strokeWidth="1.8">
                   <path d="M10 3.5 5.5 8 10 12.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                Volver al museo
+                Volver a la mesa
               </button>
             </div>
               <QuizGame
