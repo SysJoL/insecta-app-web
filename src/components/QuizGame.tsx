@@ -55,6 +55,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
   const [phase, setPhase] = useState<Phase>("countdown");
   const [countdownIdx, setCountdownIdx] = useState(0);
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentQ, setCurrentQ] = useState(0);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -79,6 +80,7 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
       const qs = await generateQuestions(mode, getCachedPool() ?? []);
       if (cancelled) return;
       setQuestions(qs);
+      setLoading(false);
 
       // Save expedition state immediately so hub shows progress
       if (mode === "expedition") {
@@ -526,6 +528,15 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
 
   return (
     <div className="w-full">
+      {/* Loading spinner while fetching taxonomy questions */}
+      {loading && (
+        <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-ink">
+          <div className="mb-4 h-10 w-10 animate-spin border-2 border-amber border-t-transparent" />
+          <p className="text-sm font-bold tracking-[0.14em] text-sage uppercase">
+            Preparando preguntas…
+          </p>
+        </div>
+      )}
       {/* Top bar: score + streak + timer + progress */}
       <div className="mb-6 flex items-center gap-3">
         <span className="shrink-0 font-display text-2xl font-black text-amber tabular-nums">

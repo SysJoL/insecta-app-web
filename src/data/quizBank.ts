@@ -384,7 +384,7 @@ export async function generateTaxonomyChain(pool?: QuizSpecimen[]): Promise<Quiz
       if (chains.length >= 5) {
         const questions: QuizQuestion[] = [];
         for (const c of shuffle(chains).slice(0, 10)) {
-          const blankIdx = Math.floor(Math.random() * 5) + 1;
+          const blankIdx = [3, 4, 5][Math.floor(Math.random() * 3)];
           const correctAnswer = c.chain[blankIdx];
           if (!correctAnswer || correctAnswer === "—") continue;
           const rankName = RANK_LABELS[blankIdx];
@@ -419,24 +419,21 @@ export async function generateTaxonomyChain(pool?: QuizSpecimen[]): Promise<Quiz
     }
   }
 
-  // Fallback: hardcoded chains
+  // Fallback: hardcoded chains (only Orden, Familia, Género blanks)
   const allOrders = [...new Set([...SPECIMENS.map((s) => s.order), ...TAXONOMY_CHAINS.map((c) => c.chain[3])])];
   const allFamilies = [...new Set([...SPECIMENS.map((s) => s.family), ...TAXONOMY_CHAINS.map((c) => c.chain[4])])];
-  const allClasses = [...new Set(TAXONOMY_CHAINS.map((c) => c.chain[2]))];
-  const allPhyla = [...new Set(TAXONOMY_CHAINS.map((c) => c.chain[1]))];
   const allGenera = [...new Set(TAXONOMY_CHAINS.map((c) => c.chain[5]))];
 
+  const validChains = TAXONOMY_CHAINS.filter((c) => c.blankIndex >= 3 && c.blankIndex <= 5);
   const questions: QuizQuestion[] = [];
 
-  for (const c of shuffle(TAXONOMY_CHAINS).slice(0, 10)) {
+  for (const c of shuffle(validChains).slice(0, 10)) {
     const blank = c.chain[c.blankIndex];
     const correctAnswer = blank;
     const rankName = RANK_LABELS[c.blankIndex] ?? "Nivel";
 
     let poolDistractors: string[];
-    if (c.blankIndex === 1) poolDistractors = allPhyla;
-    else if (c.blankIndex === 2) poolDistractors = allClasses;
-    else if (c.blankIndex === 3) poolDistractors = allOrders;
+    if (c.blankIndex === 3) poolDistractors = allOrders;
     else if (c.blankIndex === 4) poolDistractors = allFamilies;
     else poolDistractors = allGenera;
 
