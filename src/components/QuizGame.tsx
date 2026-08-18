@@ -695,9 +695,17 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
                   )}
                   {q.glyphKey === "grasshopper" && (
                     <g>
-                      <circle cx="15" cy="22" r="5" />
-                      <path d="M19 19c11-7 25-5 32 5 3 6-1 12-8 12H21c-2-4-3-10-2-17Z" />
-                      <path d="M14 18 5 7M16 17 9 5" />
+                      <path d="M24 10C16 2 8 0 2 4" strokeWidth={1.5} />
+                      <path d="M40 10C48 2 56 0 62 4" strokeWidth={1.5} />
+                      <circle cx="32" cy="12" r="7" />
+                      <circle cx="27" cy="10" r="2.5" fill="currentColor" stroke="none" />
+                      <circle cx="37" cy="10" r="2.5" fill="currentColor" stroke="none" />
+                      <ellipse cx="32" cy="19" rx="12" ry="5" />
+                      <ellipse cx="32" cy="36" rx="10" ry="9" />
+                      <path d="M26 26L16 34C12 38 8 40 6 36" strokeWidth={4} />
+                      <path d="M6 36L4 46L2 52" />
+                      <path d="M38 26L48 34C52 38 56 40 58 36" strokeWidth={4} />
+                      <path d="M58 36L60 46L62 52" />
                     </g>
                   )}
                   {q.glyphKey === "cicada" && (

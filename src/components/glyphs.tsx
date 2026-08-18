@@ -100,13 +100,50 @@ export function OrderGlyph({ k, className = "" }: Props) {
       )}
       {k === "grasshopper" && (
         <g>
-          <path d="M14 18 5 7M16 17 9 5" />
-          <circle cx="15" cy="22" r="5" />
-          <circle cx="13.5" cy="21" r="1.6" fill="currentColor" stroke="none" />
-          <path d="M19 19c11-7 25-5 32 5 3 6-1 12-8 12H21c-2-4-3-10-2-17Z" />
-          <path d="M24 18c12-4 22 0 26 8" strokeWidth={1.5} />
-          <path d="M36 34l10-12 5 16 5 2" />
-          <path d="M22 34l-2 11M28 35v11" />
+          <path d="M24 10C16 2 8 0 2 4" strokeWidth={1.5} />
+          <path d="M24 10C14 4 6 2 0 8" strokeWidth={1.5} />
+          <path d="M40 10C48 2 56 0 62 4" strokeWidth={1.5} />
+          <path d="M40 10C50 4 58 2 64 8" strokeWidth={1.5} />
+          <circle cx="32" cy="12" r="7" />
+          <circle cx="27" cy="10" r="2.5" fill="currentColor" stroke="none" />
+          <circle cx="37" cy="10" r="2.5" fill="currentColor" stroke="none" />
+          <path d="M29 17L26 20L28 22" />
+          <path d="M35 17L38 20L36 22" />
+          <ellipse cx="32" cy="19" rx="12" ry="5" />
+          <path d="M24 18C28 16 36 16 40 18" />
+          <path d="M24 22C18 26 14 32 16 40 18 44 22 46 26 44" />
+          <path d="M40 22C46 26 50 32 48 40 46 44 42 46 38 44" />
+          <path d="M23 26C19 30 18 36 19 40" />
+          <path d="M25 24C21 28 20 34 21 42" />
+          <path d="M41 26C45 30 46 36 45 40" />
+          <path d="M39 24C43 28 44 34 43 42" />
+          <ellipse cx="32" cy="36" rx="10" ry="9" />
+          <path d="M24 30L40 30" />
+          <path d="M23 34L41 34" />
+          <path d="M24 38L40 38" />
+          <path d="M26 42L38 42" />
+          <path d="M32 45C32 50 30 56 28 62" strokeWidth={1.5} />
+          <path d="M32 45C34 50 36 56 38 62" strokeWidth={1.5} />
+          <path d="M26 45C22 48 20 50 18 50" />
+          <path d="M38 45C42 48 44 50 46 50" />
+          <path d="M26 16L18 14L14 12" />
+          <path d="M38 16L46 14L50 12" />
+          <path d="M24 22L16 24L12 22" />
+          <path d="M40 22L48 24L52 22" />
+          <path d="M26 26L16 34C12 38 8 40 6 36" strokeWidth={4} />
+          <path d="M6 36L4 46L2 52" />
+          <path d="M5 40L2 41" />
+          <path d="M4 44L1 45" />
+          <path d="M3 48L1 49" />
+          <path d="M2 52L1 56" />
+          <path d="M1 56L0 58M1 56L3 58" />
+          <path d="M38 26L48 34C52 38 56 40 58 36" strokeWidth={4} />
+          <path d="M58 36L60 46L62 52" />
+          <path d="M59 40L62 41" />
+          <path d="M60 44L63 45" />
+          <path d="M61 48L63 49" />
+          <path d="M62 52L63 56" />
+          <path d="M63 56L64 58M63 56L61 58" />
         </g>
       )}
       {k === "cicada" && (
