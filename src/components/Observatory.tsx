@@ -12,6 +12,7 @@ import {
   type ObsPoint,
 } from "../lib/inatLive";
 import { OrderGlyph } from "./glyphs";
+import TaxonSearchInput from "./TaxonSearchInput";
 
 const pinIcon = L.divIcon({
   className: "inat-pin",
@@ -41,36 +42,6 @@ function Spinner() {
       <circle cx="16" cy="16" r="12" strokeOpacity="0.2" />
       <path d="M16 4a12 12 0 0 1 12 12" strokeLinecap="round" />
     </svg>
-  );
-}
-
-function SpeciesSelect({
-  species,
-  value,
-  onChange,
-}: {
-  species: CardTaxon[];
-  value: string;
-  onChange: (id: string) => void;
-}) {
-  return (
-    <label className="flex min-w-0 flex-1 items-center gap-2 sm:max-w-sm">
-      <span className="shrink-0 text-[10px] font-bold tracking-[0.2em] text-sage uppercase">
-        Taxón
-      </span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-moss bg-ink/70 px-3 py-2.5 text-sm text-bone focus:border-amber"
-      >
-        {species.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.latin}
-            {s.common ? ` — ${s.common}` : ""}
-          </option>
-        ))}
-      </select>
-    </label>
   );
 }
 
@@ -370,21 +341,23 @@ type PaneId = (typeof PANES)[number]["id"];
 export default function Observatory({
   species,
   onOpen,
+  orderMap,
 }: {
   species: CardTaxon[];
   onOpen: (t: CardTaxon) => void;
+  orderMap: Map<number, string>;
 }) {
   const usable = species.filter((s) => !s.curated);
   const [pane, setPane] = useState<PaneId>("map");
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedTaxon, setSelectedTaxon] = useState<CardTaxon | null>(null);
 
   useEffect(() => {
-    if (!selectedId && usable.length) setSelectedId(usable[0].id);
-    if (selectedId && !usable.some((u) => u.id === selectedId) && usable.length)
-      setSelectedId(usable[0].id);
-  }, [usable, selectedId]);
+    if (!selectedTaxon && usable.length) setSelectedTaxon(usable[0]);
+    if (selectedTaxon && !usable.some((u) => u.id === selectedTaxon.id) && usable.length)
+      setSelectedTaxon(usable[0]);
+  }, [usable, selectedTaxon]);
 
-  const selected = usable.find((s) => s.id === selectedId) ?? null;
+  const selectedId = selectedTaxon?.id ?? "";
 
   return (
     <div>
@@ -405,7 +378,15 @@ export default function Observatory({
           ))}
         </div>
         {pane !== "near" && usable.length > 0 && (
-          <SpeciesSelect species={usable} value={selectedId} onChange={setSelectedId} />
+          <div className="min-w-0 flex-1 sm:max-w-sm">
+            <TaxonSearchInput
+              value={selectedTaxon}
+              onSelect={(t) => setSelectedTaxon(t)}
+              suggestions={usable}
+              orderMap={orderMap}
+              label="Taxón"
+            />
+          </div>
         )}
       </div>
 
@@ -423,7 +404,7 @@ export default function Observatory({
       ) : pane === "map" ? (
         <MapPane selectedId={selectedId} />
       ) : (
-        <PhenologyPane selectedId={selectedId} latin={selected?.latin ?? ""} />
+        <PhenologyPane selectedId={selectedId} latin={selectedTaxon?.latin ?? ""} />
       )}
     </div>
   );
