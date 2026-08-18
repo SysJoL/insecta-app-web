@@ -16,7 +16,19 @@ export type GlyphKey =
   | "earwig"
   | "flea"
   | "mayfly"
-  | "cockroach";
+  | "cockroach"
+  | "bristletail"
+  | "webspinner"
+  | "scorpionfly"
+  | "dobsonfly"
+  | "stonefly"
+  | "barklouse"
+  | "snakefly"
+  | "twisted-wing"
+  | "thrip"
+  | "caddisfly"
+  | "angel-insect"
+  | "silverfish";
 
 export interface Insect {
   id: string;

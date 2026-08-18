@@ -298,6 +298,18 @@ const ORDER_GLYPHS: Record<string, GlyphKey> = {
   Siphonaptera: "flea",
   Ephemeroptera: "mayfly",
   Blattodea: "cockroach",
+  Archaeognatha: "bristletail",
+  Embioptera: "webspinner",
+  Mecoptera: "scorpionfly",
+  Megaloptera: "dobsonfly",
+  Plecoptera: "stonefly",
+  Psocodea: "barklouse",
+  Raphidioptera: "snakefly",
+  Strepsiptera: "twisted-wing",
+  Thysanoptera: "thrip",
+  Trichoptera: "caddisfly",
+  Zoraptera: "angel-insect",
+  Zygentoma: "silverfish",
 };
 
 export function glyphForOrder(orderName: string): GlyphKey {
