@@ -1,3 +1,4 @@
+import { Download } from "lucide-react";
 import { OrderGlyph } from "./glyphs";
 
 function ExternalLinkIcon() {
@@ -12,6 +13,9 @@ interface FooterProps {
   statusLabel: string;
   statusCls: string;
   clock: string;
+  canInstall: boolean;
+  onInstall: () => void;
+  onInstallFallback: () => void;
 }
 
 const SOURCES = [
@@ -21,7 +25,7 @@ const SOURCES = [
   { n: "Encyclopedia of Life", d: "fichas de historia natural", u: "https://eol.org" },
 ];
 
-export default function Footer({ statusLabel, statusCls, clock }: FooterProps) {
+export default function Footer({ statusLabel, statusCls, clock, canInstall, onInstall, onInstallFallback }: FooterProps) {
   return (
     <footer id="fuentes" className="relative overflow-hidden border-t border-moss/60 bg-ink">
       <p
@@ -43,6 +47,13 @@ export default function Footer({ statusLabel, statusCls, clock }: FooterProps) {
           <p className="mt-4 text-xs text-bone/45">
             Compilado a partir del repositorio <span className="text-amber">SysJoL/insecta-app-web</span>.
           </p>
+          <button
+            onClick={canInstall ? onInstall : onInstallFallback}
+            className="mt-4 flex items-center gap-1.5 border border-sage/60 px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:bg-sage hover:text-ink"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Instalar app
+          </button>
         </div>
 
         <div>

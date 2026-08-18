@@ -94,13 +94,6 @@ export default function Header({
                 Modo campo
               </span>
             )}
-            <button
-              onClick={canInstall ? onInstall : onInstallFallback}
-              className="hidden items-center gap-1.5 border border-sage/60 px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-colors hover:bg-sage hover:text-ink lg:flex"
-            >
-              <Download className="h-3.5 w-3.5" />
-              Instalar
-            </button>
             <a
               href="#deseos"
               className="hidden items-center gap-1 border border-rust/60 bg-rust/10 px-2.5 py-1.5 text-[11px] font-bold tabular-nums text-rust transition-colors hover:bg-rust/20 lg:flex"

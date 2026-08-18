@@ -1391,7 +1391,14 @@ export default function App() {
         </section>
 
         {/* ---------- pie con fuentes académicas ---------- */}
-        <Footer statusLabel={statusMeta.label} statusCls={statusMeta.cls} clock={clock} />
+        <Footer
+          statusLabel={statusMeta.label}
+          statusCls={statusMeta.cls}
+          clock={clock}
+          canInstall={canInstall}
+          onInstall={handleInstall}
+          onInstallFallback={handleInstallFallback}
+        />
       </div>
 
       {/* ---------- modal ---------- */}
