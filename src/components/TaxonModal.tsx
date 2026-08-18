@@ -55,12 +55,12 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
     scrollToTab(key);
   };
 
-  const heroImgRef = useRef<HTMLImageElement>(null);
-
   const downloadImage = async (url: string, name: string) => {
     try {
-      const res = await fetch(url, { mode: "cors" });
+      const res = await fetch(url);
+      if (!res.ok) throw new Error();
       const blob = await res.blob();
+      if (blob.size < 1000) throw new Error();
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `${name.replace(/\s+/g, "_")}.jpg`;
@@ -197,8 +197,6 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
                 <div className="shimmer absolute inset-0" />
               ) : heroSrc ? (
                 <img
-                  ref={heroImgRef}
-                  crossOrigin="anonymous"
                   src={heroSrc}
                   alt={`Fotografía de ${taxon.latin}`}
                   onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
