@@ -18,6 +18,89 @@ export interface OrderAnatomyData {
 }
 
 export const ORDER_ANATOMY: Record<string, OrderAnatomyData> = {
+  Coleoptera: {
+    order: "Coleoptera",
+    latin: "Coleoptera · escarabajos",
+    representative: "Carabus sp.",
+    representativeLatin: "Carabus violaceus",
+    glyph: "beetle",
+    parts: [
+      {
+        id: "cabeza",
+        term: "Cabeza",
+        latin: "Caput",
+        def: "Tagma anterior: encierra el cerebro (ganglio supraesofágico), los órganos sensoriales y las piezas bucales. Su orientación —hipógnata o prognata— es un carácter de familia.",
+      },
+      {
+        id: "antena",
+        term: "Antenas",
+        latin: "Antennae",
+        def: "Órganos sensoriales segmentados del tacto y el olfato; en muchos grupos también oyen. Su forma —filiforme, clavada, pectinada, geniculada— es una de las primeras claves de identificación.",
+      },
+      {
+        id: "ojo",
+        term: "Ojos compuestos",
+        latin: "Oculi compositi",
+        def: "Formados por miles de omatidios, cada uno con su propia lente: ofrecen un mosaico de imagen y un campo visual de casi 360°. Las libélulas alcanzan 28 000 por ojo.",
+      },
+      {
+        id: "mandibula",
+        term: "Mandíbulas",
+        latin: "Mandibulae",
+        def: "Primer par de piezas bucales: cortan, trituran o transportan. En los ciervos volantes se hipertrofian en astas de combate que pueden superar la mitad del cuerpo.",
+      },
+      {
+        id: "pronoto",
+        term: "Pronoto",
+        latin: "Pronotum",
+        def: "La placa dorsal del primer segmento torácico (protórax). Su contorno, ángulos y ornamentación separan géneros enteros de escarabajos y chinches.",
+      },
+      {
+        id: "escutelo",
+        term: "Escutelo",
+        latin: "Scutellum",
+        def: "Pequeño triángulo dorsal entre las bases de los élitros: es el resto visible del mesonoto. En las chinches (Hemiptera) puede llegar a cubrir todo el abdomen.",
+      },
+      {
+        id: "elitro",
+        term: "Élitros",
+        latin: "Elytra",
+        def: "Alas anteriores endurecidas que forman un estuche protector. Se abren en bisagra para desplegar las alas membranosas; su puntuación y estrías son caracteres taxonómicos de primer orden.",
+      },
+      {
+        id: "sutura",
+        term: "Sutura elitral",
+        latin: "Sutura elitrorum",
+        def: "La línea media donde ambos élitros se cierran. Una sutura recta y completa es sinapomorfía de los coleópteros: ninguna otra orden la presenta igual.",
+      },
+      {
+        id: "pata",
+        term: "Pata torácica",
+        latin: "Pes thoracicus",
+        def: "Consta de coxa, trocánter, fémur, tibia y tarso. Sus modificaciones son claves de orden: raptoras (mantis), saltadoras (saltamontes), fosoras (grillotopo), colectoras (abejas).",
+      },
+      {
+        id: "ala",
+        term: "Ala membranosa",
+        latin: "Ala membranacea",
+        def: "El ala de vuelo verdadera: una lámina quitinosa plegada en abanico con venas que le dan rigidez. En los escarabajos puede medir tres veces el élitro que la guarda.",
+      },
+      {
+        id: "abdomen",
+        term: "Ápice abdominal",
+        latin: "Pygidium",
+        def: "El extremo visible del abdomen: aloja el final del tubo digestivo, los genitales y los últimos espiráculos. Su forma ayuda a distinguir familias de coleópteros.",
+      },
+    ],
+    distinguishing: [
+      "Élitros que se cierran en línea recta sobre el dorso",
+      "Alas membranosas plegadas bajo los élitros",
+      "Metamorfosis completa: huevo → larva → pupa → adulto",
+      "Piezas bucales masticadoras en todas las etapas",
+      "Sutura elitral exclusiva de este orden",
+      "El orden más diverso: >400 000 especies descritas",
+    ],
+  },
   Lepidoptera: {
     order: "Lepidoptera",
     latin: "Lepidoptera · mariposas y polillas",
