@@ -56,7 +56,7 @@ export const TAXONOMY_CHAINS: TaxonomyChain[] = [
   { chain: ["Animalia", "Arthropoda", "Insecta", "Diptera", "Syrphidae", "Episyrphus", "E. balteatus"], blankIndex: 4, label: "Sírfido marmoleado", specimenId: "episyrphus-balteatus" },
   { chain: ["Animalia", "Arthropoda", "Insecta", "Diptera", "Syrphidae", "Eristalis", "E. tenax"], blankIndex: 4, label: "Mosca abejorro", specimenId: "eristalis-tenax" },
 
-  // ─── Órdenes faltantes: 1 cadena cada uno ───
+  // ─── Órdenes faltantes: 1 cadena cada uno (respaldo) ───
   { chain: ["Animalia", "Arthropoda", "Insecta", "Dermaptera", "Forficulidae", "Forficula", "F. auricularia"], blankIndex: 3, label: "Tijereta común", specimenId: "forficula-auricularia" },
   { chain: ["Animalia", "Arthropoda", "Insecta", "Siphonaptera", "Pulicidae", "Ctenocephalides", "C. felis"], blankIndex: 3, label: "Pulga del gato", specimenId: "ctenocephalides-felis" },
   { chain: ["Animalia", "Arthropoda", "Insecta", "Ephemeroptera", "Baetidae", "Baetis", "B. rhodani"], blankIndex: 3, label: "Efímero de río", specimenId: "baetis-rhodani" },
