@@ -1045,6 +1045,15 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
             </div>
           )}
 
+          {/* Ecosystem label badge */}
+          {q.ecosystemLabel && (
+            <div className="mb-4 flex justify-center">
+              <span className="border border-teal/40 bg-teal/10 px-3 py-1 text-[10px] font-bold tracking-[0.14em] text-teal uppercase">
+                {q.ecosystemLabel}
+              </span>
+            </div>
+          )}
+
           {/* Question text */}
           {q.chainItems ? (
             <div className="mb-8 text-center">
@@ -1087,20 +1096,29 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
                 <ItalicLatin text={q.question} />
               </p>
             </div>
-          ) : (
-            <p className="mb-8 text-center font-display text-xl font-bold leading-snug text-parch sm:text-2xl whitespace-pre-line">
-              <ItalicLatin text={q.question} />
-            </p>
-          )}
+          ) : (() => {
+            const splitIdx = q.question.indexOf("¿");
+            if (splitIdx > 0) {
+              const context = q.question.slice(0, splitIdx).trim();
+              const questionPart = q.question.slice(splitIdx);
+              return (
+                <div className="mb-8 text-center">
+                  <p className="mb-3 text-xs leading-relaxed text-bone/60 sm:text-sm">
+                    <ItalicLatin text={context} />
+                  </p>
+                  <p className="font-display text-base font-bold leading-snug text-parch sm:text-lg">
+                    <ItalicLatin text={questionPart} />
+                  </p>
+                </div>
+              );
+            }
+            return (
+              <p className="mb-8 text-center font-display text-lg font-bold leading-snug text-parch sm:text-xl whitespace-pre-line">
+                <ItalicLatin text={q.question} />
+              </p>
+            );
+          })()}
 
-          {/* Ecosystem label badge */}
-          {q.ecosystemLabel && (
-            <div className="mb-4 flex justify-center">
-              <span className="border border-teal/40 bg-teal/10 px-3 py-1 text-[10px] font-bold tracking-[0.14em] text-teal uppercase">
-                {q.ecosystemLabel}
-              </span>
-            </div>
-          )}
 
           {/* Cryptid hints */}
           {q.hints && q.hints.length > 0 && (
