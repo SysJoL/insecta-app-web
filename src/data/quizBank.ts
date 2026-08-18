@@ -268,6 +268,23 @@ export function generateIdentifyGlyph(): QuizQuestion[] {
     leaf: "Phasmatodea",
     fly: "Diptera",
     bug: "Hemiptera",
+    lacewing: "Neuroptera",
+    earwig: "Dermaptera",
+    flea: "Siphonaptera",
+    mayfly: "Ephemeroptera",
+    cockroach: "Blattodea",
+    bristletail: "Archaeognatha",
+    webspinner: "Embioptera",
+    scorpionfly: "Mecoptera",
+    dobsonfly: "Megaloptera",
+    stonefly: "Plecoptera",
+    barklouse: "Psocodea",
+    snakefly: "Raphidioptera",
+    "twisted-wing": "Strepsiptera",
+    thrip: "Thysanoptera",
+    caddisfly: "Trichoptera",
+    "angel-insect": "Zoraptera",
+    silverfish: "Zygentoma",
   };
 
   const allGlyphs = Object.keys(GLYPH_TO_ORDER) as GlyphKey[];
