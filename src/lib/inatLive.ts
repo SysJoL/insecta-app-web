@@ -173,7 +173,7 @@ export const IUCN_META: Record<string, { label: string; color: string }> = {
 /* ---------------- árbol taxonómico (hijos de un taxón) ---------------- */
 
 export async function fetchChildren(taxonId: number): Promise<TaxonChild[]> {
-  const data = await get<ChildrenResponse>(`${BASE}/taxa/${taxonId}/children?per_page=50`);
+  const data = await get<ChildrenResponse>(`${BASE}/taxa?parent_id=${taxonId}&per_page=50&is_active=true`);
   const taxa = data.results ?? [];
   return taxa
     .map((t) => ({
