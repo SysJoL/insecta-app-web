@@ -623,12 +623,18 @@ export function generateEvolution(): QuizQuestion[] {
 
   return shuffle(SCENARIOS).slice(0, 10).map((sc) => {
     const options = shuffle([sc.correct, ...sc.distractors]);
+    const latinParts = sc.specimenId.split("-");
+    const latinName = latinParts.length >= 2
+      ? `${latinParts[0].charAt(0).toUpperCase() + latinParts[0].slice(1)} ${latinParts.slice(1).join(" ")}`
+      : sc.specimenId;
     return {
       question: `Entorno: "${sc.env}"\n\n¿Qué adaptación evolutiva es más ventajosa?`,
       options,
       correctIndex: options.indexOf(sc.correct),
       explanation: sc.explanation,
       specimenId: sc.specimenId,
+      displayLabel: latinName,
+      latinName,
     };
   });
 }
@@ -766,12 +772,18 @@ export function generateEcosystem(): QuizQuestion[] {
 
   return shuffle(ALL).slice(0, 10).map((r) => {
     const options = shuffle([r.correct, ...r.distractors]);
+    const latinParts = r.specimenId.split("-");
+    const latinName = latinParts.length >= 2
+      ? `${latinParts[0].charAt(0).toUpperCase() + latinParts[0].slice(1)} ${latinParts.slice(1).join(" ")}`
+      : r.specimenId;
     return {
       question: r.question,
       options,
       correctIndex: options.indexOf(r.correct),
       explanation: r.explanation,
       specimenId: r.specimenId,
+      displayLabel: latinName,
+      latinName,
       ecosystemLabel: r.label,
     };
   });
@@ -890,14 +902,22 @@ export function generateCryptid(): QuizQuestion[] {
     },
   ];
 
-  return shuffle(CHALLENGES).slice(0, 10).map((c) => ({
-    question: `${c.name}\n\nResuelve las pistas para identificar al espécimen misterioso:`,
-    options: c.options,
-    correctIndex: c.correctIndex,
-    explanation: c.explanation,
-    hints: c.hints,
-    specimenId: c.specimenId,
-  }));
+  return shuffle(CHALLENGES).slice(0, 10).map((c) => {
+    const latinParts = c.specimenId.split("-");
+    const latinName = latinParts.length >= 2
+      ? `${latinParts[0].charAt(0).toUpperCase() + latinParts[0].slice(1)} ${latinParts.slice(1).join(" ")}`
+      : c.specimenId;
+    return {
+      question: `${c.name}\n\nResuelve las pistas para identificar al espécimen misterioso:`,
+      options: c.options,
+      correctIndex: c.correctIndex,
+      explanation: c.explanation,
+      hints: c.hints,
+      specimenId: c.specimenId,
+      displayLabel: latinName,
+      latinName,
+    };
+  });
 }
 
 /**
