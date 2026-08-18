@@ -80,33 +80,33 @@ export default function TaxonSearchInput({
   const showDropdown = open && displayItems.length > 0;
 
   return (
-    <div ref={wrapRef} className="relative">
-      <label className="mb-1.5 block text-[10px] font-bold tracking-[0.2em] text-sage uppercase">
-        {label}
-      </label>
-      <div className="flex items-center border border-moss bg-ink/70 transition-colors focus-within:border-amber">
-        <Search className="ml-3 h-4 w-4 shrink-0 text-bone/40" />
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          placeholder={value ? value.latin : "Buscar especie…"}
-          onChange={(e) => handleChange(e.target.value)}
-          onFocus={() => setOpen(true)}
-          className="w-full bg-transparent px-3 py-2.5 text-sm text-bone placeholder:text-bone/35 focus:outline-none"
-        />
-        {value && !query && (
-          <button
-            onClick={() => onSelect(null as unknown as CardTaxon)}
-            className="mr-2 shrink-0 border border-moss/60 px-1.5 py-0.5 text-[10px] text-bone/50 transition-colors hover:border-rust hover:text-rust"
-          >
-            ✕
-          </button>
-        )}
+    <div ref={wrapRef} className="relative w-full">
+      <div className="flex items-center gap-2">
+        <span className="shrink-0 text-[10px] font-bold tracking-[0.2em] text-sage uppercase">{label}</span>
+        <div className="flex min-w-0 flex-1 items-center border border-moss bg-ink/70 transition-colors focus-within:border-amber">
+          <Search className="ml-2.5 h-4 w-4 shrink-0 text-bone/40" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            placeholder={value ? value.latin : "Buscar especie…"}
+            onChange={(e) => handleChange(e.target.value)}
+            onFocus={() => setOpen(true)}
+            className="w-full bg-transparent px-2.5 py-2.5 text-sm text-bone placeholder:text-bone/35 focus:outline-none"
+          />
+          {value && !query && (
+            <button
+              onClick={() => onSelect(null as unknown as CardTaxon)}
+              className="mr-2 shrink-0 border border-moss/60 px-1.5 py-0.5 text-[10px] text-bone/50 transition-colors hover:border-rust hover:text-rust"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {showDropdown && (
-        <ul className="absolute z-50 mt-1 max-h-72 w-full overflow-auto border border-moss bg-pine shadow-lg shadow-black/40">
+        <ul className="absolute left-0 right-0 top-full z-[1100] mt-1 max-h-80 w-full overflow-y-auto border border-moss bg-pine shadow-lg shadow-black/40">
           {!query.trim() && (
             <li className="px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-bone/40 uppercase">
               {filteredSuggestions.length > 0 ? "En pantalla" : "Escribe para buscar en iNaturalist"}
@@ -122,9 +122,9 @@ export default function TaxonSearchInput({
                   e.preventDefault();
                   pick(t);
                 }}
-                className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-amber/5"
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-amber/5"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden border border-moss/60 bg-fern/40">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden border border-moss/60 bg-fern/40">
                   {t.photoUrl ? (
                     <img src={t.photoUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
                   ) : (
