@@ -55,18 +55,23 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
     scrollToTab(key);
   };
 
-  const downloadImage = async (url: string, name: string) => {
-    try {
-      const res = await fetch(url);
-      const blob = await res.blob();
+  const heroImgRef = useRef<HTMLImageElement>(null);
+
+  const downloadImage = (name: string) => {
+    const img = heroImgRef.current;
+    if (!img) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    canvas.getContext("2d")?.drawImage(img, 0, 0);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `${name.replace(/\s+/g, "_")}.jpg`;
       a.click();
       URL.revokeObjectURL(a.href);
-    } catch {
-      window.open(url, "_blank");
-    }
+    }, "image/jpeg", 0.95);
   };
 
   useEffect(() => {
@@ -193,6 +198,7 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
                 <div className="shimmer absolute inset-0" />
               ) : heroSrc ? (
                 <img
+                  ref={heroImgRef}
                   src={heroSrc}
                   alt={`Fotografía de ${taxon.latin}`}
                   onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
@@ -208,7 +214,7 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
               </span>
               {heroSrc && (
                 <button
-                  onClick={() => downloadImage(heroSrc, taxon.latin)}
+                  onClick={() => downloadImage(taxon.latin)}
                   className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center border border-bone/25 bg-ink/70 text-bone backdrop-blur-sm transition-colors hover:border-amber hover:text-amber"
                   aria-label="Descargar imagen"
                 >
