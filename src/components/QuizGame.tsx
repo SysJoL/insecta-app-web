@@ -74,46 +74,50 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
 
   // Initialize questions and countdown
   useEffect(() => {
-    const qs = generateQuestions(mode, getCachedPool() ?? []);
-    setQuestions(qs);
+    let cancelled = false;
+    (async () => {
+      const qs = await generateQuestions(mode, getCachedPool() ?? []);
+      if (cancelled) return;
+      setQuestions(qs);
 
-    // Save expedition state immediately so hub shows progress
-    if (mode === "expedition") {
-      saveExpeditionState({
-        active: true,
-        lives: 3,
-        maxLives: 3,
-        stationIdx: 0,
-        totalStations: qs.length,
-        score: 0,
-        correctCount: 0,
-      });
-    }
+      // Save expedition state immediately so hub shows progress
+      if (mode === "expedition") {
+        saveExpeditionState({
+          active: true,
+          lives: 3,
+          maxLives: 3,
+          stationIdx: 0,
+          totalStations: qs.length,
+          score: 0,
+          correctCount: 0,
+        });
+      }
 
-    if (mode === "daily") {
-      setPhase("playing");
-      questionStartTime.current = Date.now();
-      return;
-    }
-
-    // Countdown
-    sfxCountdown();
-    let idx = 0;
-    const interval = setInterval(() => {
-      idx++;
-      if (idx >= COUNTDOWN_NUMS.length) {
-        clearInterval(interval);
-        sfxGo();
+      if (mode === "daily") {
         setPhase("playing");
         questionStartTime.current = Date.now();
         return;
       }
+
+      // Countdown
       sfxCountdown();
-      setCountdownIdx(idx);
-    }, 800);
+      let idx = 0;
+      const interval = setInterval(() => {
+        idx++;
+        if (idx >= COUNTDOWN_NUMS.length) {
+          clearInterval(interval);
+          sfxGo();
+          setPhase("playing");
+          questionStartTime.current = Date.now();
+          return;
+        }
+        sfxCountdown();
+        setCountdownIdx(idx);
+      }, 800);
+    })();
 
     return () => {
-      clearInterval(interval);
+      cancelled = true;
       window.clearTimeout(feedbackTimerRef.current);
       window.clearInterval(timerRef.current);
     };
@@ -481,8 +485,9 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
         coinsEarned={totalCoins}
         avgTimeMs={avgTime}
         profile={profile}
-        onReplay={() => {
-          setQuestions(generateQuestions(mode, getCachedPool() ?? []));
+        onReplay={async () => {
+          const qs = await generateQuestions(mode, getCachedPool() ?? []);
+          setQuestions(qs);
           setCurrentQ(0);
           setScore(0);
           setStreak(0);

@@ -2,6 +2,7 @@ import { SPECIMENS } from "./insects";
 import { GENERA, EPITHETS } from "./academic";
 import { ECO_QUESTIONS, type EcoRelation } from "./ecosystemQuestions";
 import { TAXONOMY_CHAINS, type TaxonomyChain } from "./taxonomyChains";
+import { fetchTaxonDetail } from "../lib/inat";
 import type { GlyphKey } from "./insects";
 
 /* ------------------------------------------------------------------ */
@@ -345,12 +346,7 @@ export function generateEtymology(): QuizQuestion[] {
  * MODO 5: Completa la Cadena
  * Muestra una cadena taxonómica con un nivel faltante
  */
-export function generateTaxonomyChain(): QuizQuestion[] {
-  const allOrders = [...new Set([...SPECIMENS.map((s) => s.order), ...TAXONOMY_CHAINS.map((c) => c.chain[3])])];
-  const allFamilies = [...new Set([...SPECIMENS.map((s) => s.family), ...TAXONOMY_CHAINS.map((c) => c.chain[4])])];
-  const allClasses = [...new Set(TAXONOMY_CHAINS.map((c) => c.chain[2]))];
-  const allPhyla = [...new Set(TAXONOMY_CHAINS.map((c) => c.chain[1]))];
-  const allGenera = [...new Set(TAXONOMY_CHAINS.map((c) => c.chain[5]))];
+export async function generateTaxonomyChain(pool?: QuizSpecimen[]): Promise<QuizQuestion[]> {
   const RANK_LABELS: Record<number, string> = {
     0: "Reino",
     1: "Filo",
@@ -360,6 +356,75 @@ export function generateTaxonomyChain(): QuizQuestion[] {
     5: "Género",
     6: "Especie",
   };
+  const RANK_ORDER = ["kingdom", "phylum", "class", "order", "family", "genus", "species"];
+
+  // Try to build chains from iNaturalist API
+  if (pool && pool.length > 0) {
+    try {
+      const chains: TaxonomyChain[] = [];
+      for (const sp of pool) {
+        const inatMatch = sp.id.match(/^inat:(\d+)$/);
+        if (!inatMatch) continue;
+        const numericId = parseInt(inatMatch[1], 10);
+        try {
+          const detail = await fetchTaxonDetail(numericId);
+          const ancestorMap = new Map(detail.ancestors.map((a) => [a.rank, a.name]));
+          const chain: string[] = RANK_ORDER.map((rank) => {
+            if (rank === "species") return detail.name;
+            return ancestorMap.get(rank) ?? "—";
+          });
+          if (chain.filter((v) => v && v !== "—").length >= 5) {
+            chains.push({ chain, blankIndex: 0, label: sp.name, specimenId: sp.id });
+          }
+        } catch {
+          // skip this specimen
+        }
+      }
+
+      if (chains.length >= 5) {
+        const questions: QuizQuestion[] = [];
+        for (const c of shuffle(chains).slice(0, 10)) {
+          const blankIdx = Math.floor(Math.random() * 5) + 1;
+          const correctAnswer = c.chain[blankIdx];
+          if (!correctAnswer || correctAnswer === "—") continue;
+          const rankName = RANK_LABELS[blankIdx];
+
+          const allValues = new Set(chains.map((ch) => ch.chain[blankIdx]).filter(Boolean));
+          const distractors = shuffle([...allValues].filter((v) => v !== correctAnswer)).slice(0, 3);
+          if (distractors.length < 3) continue;
+          const options = shuffle([correctAnswer, ...distractors]);
+
+          const chainItems = c.chain.map((v, i) => ({
+            rank: RANK_LABELS[i] ?? "",
+            value: i === blankIdx ? "___" : v,
+            isBlank: i === blankIdx,
+          }));
+
+          questions.push({
+            question: `Completa la cadena taxonómica de ${c.label}:`,
+            options,
+            correctIndex: options.indexOf(correctAnswer),
+            explanation: `El ${rankName} correcto es "${correctAnswer}".`,
+            displayLabel: c.label,
+            latinName: c.chain[5] ? `${c.chain[5]} ${c.chain[6] ?? ""}`.trim() : c.label,
+            chainLevel: rankName,
+            chainItems,
+            specimenId: c.specimenId,
+          });
+        }
+        if (questions.length >= 5) return shuffle(questions).slice(0, 10);
+      }
+    } catch {
+      // fall through to hardcoded
+    }
+  }
+
+  // Fallback: hardcoded chains
+  const allOrders = [...new Set([...SPECIMENS.map((s) => s.order), ...TAXONOMY_CHAINS.map((c) => c.chain[3])])];
+  const allFamilies = [...new Set([...SPECIMENS.map((s) => s.family), ...TAXONOMY_CHAINS.map((c) => c.chain[4])])];
+  const allClasses = [...new Set(TAXONOMY_CHAINS.map((c) => c.chain[2]))];
+  const allPhyla = [...new Set(TAXONOMY_CHAINS.map((c) => c.chain[1]))];
+  const allGenera = [...new Set(TAXONOMY_CHAINS.map((c) => c.chain[5]))];
 
   const questions: QuizQuestion[] = [];
 
@@ -368,14 +433,14 @@ export function generateTaxonomyChain(): QuizQuestion[] {
     const correctAnswer = blank;
     const rankName = RANK_LABELS[c.blankIndex] ?? "Nivel";
 
-    let pool: string[];
-    if (c.blankIndex === 1) pool = allPhyla;
-    else if (c.blankIndex === 2) pool = allClasses;
-    else if (c.blankIndex === 3) pool = allOrders;
-    else if (c.blankIndex === 4) pool = allFamilies;
-    else pool = allGenera;
+    let poolDistractors: string[];
+    if (c.blankIndex === 1) poolDistractors = allPhyla;
+    else if (c.blankIndex === 2) poolDistractors = allClasses;
+    else if (c.blankIndex === 3) poolDistractors = allOrders;
+    else if (c.blankIndex === 4) poolDistractors = allFamilies;
+    else poolDistractors = allGenera;
 
-    const distractors = pickRandom(pool, 3, correctAnswer);
+    const distractors = pickRandom(poolDistractors, 3, correctAnswer);
     const options = shuffle([correctAnswer, ...distractors]);
 
     const chainItems = c.chain.map((v, i) => ({
@@ -873,7 +938,7 @@ export function generateExpedition(pool?: QuizSpecimen[]): QuizQuestion[] {
 /*  Router principal                                                    */
 /* ------------------------------------------------------------------ */
 
-export function generateQuestions(mode: QuizMode, pool?: QuizSpecimen[]): QuizQuestion[] {
+export async function generateQuestions(mode: QuizMode, pool?: QuizSpecimen[]): Promise<QuizQuestion[]> {
   switch (mode) {
     case "speed-scientific":
       return generateSpeedScientific(pool);
@@ -884,7 +949,7 @@ export function generateQuestions(mode: QuizMode, pool?: QuizSpecimen[]): QuizQu
     case "etymology":
       return generateEtymology();
     case "taxonomy-chain":
-      return generateTaxonomyChain();
+      return generateTaxonomyChain(pool);
     case "evolution":
       return generateEvolution();
     case "ecosystem":
