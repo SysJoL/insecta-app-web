@@ -64,16 +64,14 @@ interface HistResponse {
 }
 
 interface ChildrenResponse {
-  results: {
-    taxa?: Array<{
-      id: number;
-      name: string;
-      rank: string;
-      preferred_common_name?: string | null;
-      observations_count?: number;
-      default_photo?: { url?: string } | null;
-    }>;
-  };
+  results: Array<{
+    id: number;
+    name: string;
+    rank: string;
+    preferred_common_name?: string | null;
+    observations_count?: number;
+    default_photo?: { url?: string } | null;
+  }>;
 }
 
 interface GbifResponse {
@@ -176,7 +174,7 @@ export const IUCN_META: Record<string, { label: string; color: string }> = {
 
 export async function fetchChildren(taxonId: number): Promise<TaxonChild[]> {
   const data = await get<ChildrenResponse>(`${BASE}/taxa/${taxonId}/children?per_page=50`);
-  const taxa = data.results?.taxa ?? [];
+  const taxa = data.results ?? [];
   return taxa
     .map((t) => ({
       id: t.id,
