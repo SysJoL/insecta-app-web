@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fmtFull, glyphForOrder, type CardTaxon } from "../lib/inat";
 import { OrderGlyph } from "./glyphs";
+import TaxonSearchInput from "./TaxonSearchInput";
 
 function Panel({
   t,
@@ -76,19 +77,22 @@ function Panel({
   );
 }
 
-export default function SpeciesCompare({ species }: { species: CardTaxon[] }) {
-  const [aId, setAId] = useState("");
-  const [bId, setBId] = useState("");
+export default function SpeciesCompare({
+  species,
+  orderMap,
+}: {
+  species: CardTaxon[];
+  orderMap: Map<number, string>;
+}) {
+  const [selA, setSelA] = useState<CardTaxon | null>(null);
+  const [selB, setSelB] = useState<CardTaxon | null>(null);
 
   useEffect(() => {
-    if (!aId && species[0]) setAId(species[0].id);
-    if (!bId && species[1]) setBId(species[1].id);
-  }, [species, aId, bId]);
+    if (!selA && species[0]) setSelA(species[0]);
+    if (!selB && species[1]) setSelB(species[1]);
+  }, [species, selA, selB]);
 
-  const a = species.find((s) => s.id === aId) ?? null;
-  const b = species.find((s) => s.id === bId) ?? null;
-
-  if (!a || !b) {
+  if (!selA || !selB) {
     return (
       <p className="label-frame bg-pine/70 p-10 text-center font-display text-xl text-bone/70 italic">
         Cargando especímenes para la mesa de comparación…
@@ -96,59 +100,45 @@ export default function SpeciesCompare({ species }: { species: CardTaxon[] }) {
     );
   }
 
-  const hasCounts = a.observations > 0 || b.observations > 0;
+  const hasCounts = selA.observations > 0 || selB.observations > 0;
   const winner: "a" | "b" | null =
-    hasCounts && a.observations !== b.observations
-      ? a.observations > b.observations
+    hasCounts && selA.observations !== selB.observations
+      ? selA.observations > selB.observations
         ? "a"
         : "b"
       : null;
-  const maxObs = Math.max(a.observations, b.observations);
-  const delta = Math.abs(a.observations - b.observations);
+  const maxObs = Math.max(selA.observations, selB.observations);
+  const delta = Math.abs(selA.observations - selB.observations);
   const ratio =
-    hasCounts && Math.min(a.observations, b.observations) > 0
-      ? (Math.max(a.observations, b.observations) / Math.min(a.observations, b.observations)).toFixed(1)
+    hasCounts && Math.min(selA.observations, selB.observations) > 0
+      ? (Math.max(selA.observations, selB.observations) / Math.min(selA.observations, selB.observations)).toFixed(1)
       : null;
-  const sameOrder = a.orderName === b.orderName;
+  const sameOrder = selA.orderName === selB.orderName;
 
   return (
     <div>
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
-        <label className="flex items-center gap-2">
-          <span className="shrink-0 text-[10px] font-bold tracking-[0.2em] text-amber uppercase">A</span>
-          <select
-            value={aId}
-            onChange={(e) => setAId(e.target.value)}
-            className="w-full border border-moss bg-ink/70 px-3 py-2.5 text-sm text-bone focus:border-amber"
-          >
-            {species.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.latin}
-                {s.common ? ` — ${s.common}` : ""}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex items-center gap-2">
-          <span className="shrink-0 text-[10px] font-bold tracking-[0.2em] text-sage uppercase">B</span>
-          <select
-            value={bId}
-            onChange={(e) => setBId(e.target.value)}
-            className="w-full border border-moss bg-ink/70 px-3 py-2.5 text-sm text-bone focus:border-amber"
-          >
-            {species.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.latin}
-                {s.common ? ` — ${s.common}` : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+        <TaxonSearchInput
+          value={selA}
+          onSelect={(t) => setSelA(t)}
+          suggestions={species}
+          orderMap={orderMap}
+          label="Especie A"
+          excludeId={selB?.id}
+        />
+        <TaxonSearchInput
+          value={selB}
+          onSelect={(t) => setSelB(t)}
+          suggestions={species}
+          orderMap={orderMap}
+          label="Especie B"
+          excludeId={selA?.id}
+        />
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">
-        <Panel t={a} tag="A" winner={winner === "a"} maxObs={maxObs} />
-        <Panel t={b} tag="B" winner={winner === "b"} maxObs={maxObs} />
+        <Panel t={selA} tag="A" winner={winner === "a"} maxObs={maxObs} />
+        <Panel t={selB} tag="B" winner={winner === "b"} maxObs={maxObs} />
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 border border-moss/60 bg-ink/50 px-5 py-4 text-sm">
@@ -169,7 +159,7 @@ export default function SpeciesCompare({ species }: { species: CardTaxon[] }) {
                 sameOrder ? "border-sage/50 text-sage" : "border-amber/60 text-amber"
               }`}
             >
-              {sameOrder ? `Mismo orden · ${a.orderName}` : `${a.orderName} ≠ ${b.orderName}`}
+              {sameOrder ? `Mismo orden · ${selA.orderName}` : `${selA.orderName} ≠ ${selB.orderName}`}
             </span>
           </>
         ) : (

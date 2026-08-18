@@ -1126,7 +1126,7 @@ export default function App() {
 
             <Reveal delay={120}>
               {labTool === "obs" && <Observatory species={cards} onOpen={setActive} />}
-              {labTool === "cmp" && <SpeciesCompare species={cards} />}
+              {labTool === "cmp" && <SpeciesCompare species={cards} orderMap={orderMapRef.current} />}
               {labTool === "tree" && <TaxonomyTree orders={orders} onOpen={setActive} />}
             </Reveal>
           </div>
