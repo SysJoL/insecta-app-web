@@ -11,7 +11,6 @@ const NAV_ITEMS: [string, string][] = [
   ["Caja", "#caja"],
   ["Deseos", "#deseos"],
   ["Cuaderno", "#cuaderno"],
-  ["Fuentes", "#fuentes"],
 ];
 
 /* ---------- hamburger button (visible solo < md) ---------- */
