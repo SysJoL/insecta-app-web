@@ -340,3 +340,72 @@ export async function fetchTaxonPhoto(latinName: string): Promise<string | null>
     return null;
   }
 }
+
+/* ---------- Wikipedia etymology cache ---------- */
+
+const etymologyCache = new Map<string, { lang: string; meaning: string; detail: string } | null>();
+
+/**
+ * Fetches the etymology section from a Wikipedia article via MediaWiki API.
+ * Returns structured etymology or null if not found.
+ */
+export async function fetchWikipediaEtymology(
+  name: string,
+): Promise<{ lang: string; meaning: string; detail: string } | null> {
+  const key = name.toLowerCase();
+  if (etymologyCache.has(key)) return etymologyCache.get(key) ?? null;
+
+  try {
+    const title = encodeURIComponent(name);
+    const res = await fetch(
+      `https://es.wikipedia.org/w/api.php?action=parse&page=${title}&prop=wikitext&formatversion=2&format=json&origin=*`,
+    );
+    if (!res.ok) {
+      etymologyCache.set(key, null);
+      return null;
+    }
+    const data = (await res.json()) as { parse?: { wikitext?: string } };
+    const wikitext = data.parse?.wikitext ?? "";
+
+    // Find etymology section (== Etimología == or == Etymology ==)
+    const etymMatch = wikitext.match(
+      /==\s*(?:Etimolog[ií]a|Etymology)\s*==\n([\s\S]*?)(?=\n==\s|\n*$)/i,
+    );
+    if (!etymMatch) {
+      etymologyCache.set(key, null);
+      return null;
+    }
+    const section = etymMatch[1].replace(/\[\[([^|\]]*\|)?([^\]]+)\]\]/g, "$2").replace(/'''/g, "").trim();
+
+    // Try to extract: "del latín X que significa Y" or "De X (Y)"
+    let lang = "Latín";
+    let meaning = "";
+    let detail = section.split("\n")[0].slice(0, 200);
+
+    const latMatch = section.match(/del?\s+(latín|griego|árabe|nahuatl)\s+(\w+)\s*(?:que\s+)?(?:significa|equivale\s+a|=)\s+["""]?([^""",.;\n]+)["""]?/i);
+    if (latMatch) {
+      lang = latMatch[1].charAt(0).toUpperCase() + latMatch[1].slice(1);
+      meaning = latMatch[3].trim();
+    } else {
+      const deMatch = section.match(/De\s+(\w+)\s*\(([^)]+)\)/);
+      if (deMatch) {
+        meaning = deMatch[2].trim();
+      } else {
+        const sigMatch = section.match(/(?:significa|nombre\s+de)\s+["""]?([^""",.;\n]{2,40})["""]?/i);
+        if (sigMatch) meaning = sigMatch[1].trim();
+      }
+    }
+
+    if (!meaning) {
+      etymologyCache.set(key, null);
+      return null;
+    }
+
+    const result = { lang, meaning, detail };
+    etymologyCache.set(key, result);
+    return result;
+  } catch {
+    etymologyCache.set(key, null);
+    return null;
+  }
+}

@@ -2,7 +2,7 @@ import { SPECIMENS } from "./insects";
 import { GENERA, EPITHETS } from "./academic";
 import { ECO_QUESTIONS, type EcoRelation } from "./ecosystemQuestions";
 import { TAXONOMY_CHAINS, type TaxonomyChain } from "./taxonomyChains";
-import { fetchTaxonDetail } from "../lib/inat";
+import { fetchTaxonDetail, fetchWikipediaEtymology } from "../lib/inat";
 import type { GlyphKey } from "./insects";
 
 /* ------------------------------------------------------------------ */
@@ -291,51 +291,92 @@ export function generateIdentifyGlyph(): QuizQuestion[] {
 }
 
 /**
- * MODO 4: Etimología Viva
+ * MODO 4: Etimología Viva (híbrida: local + Wikipedia)
  * Muestra el significado de un término → elige la especie o concepto correcto
  */
-export function generateEtymology(): QuizQuestion[] {
+export async function generateEtymology(pool?: QuizSpecimen[]): Promise<QuizQuestion[]> {
+  interface EtymEntry {
+    word: string;
+    lang: string;
+    meaning: string;
+    detail?: string;
+    source: "local" | "wikipedia";
+  }
+
+  // 1. Start with local data
+  const entries: EtymEntry[] = [];
+  for (const [word, ep] of Object.entries(GENERA)) {
+    entries.push({ word, lang: ep.lang, meaning: ep.meaning, detail: ep.detail, source: "local" });
+  }
+  for (const [word, ep] of Object.entries(EPITHETS)) {
+    entries.push({ word, lang: ep.lang, meaning: ep.meaning, detail: ep.detail, source: "local" });
+  }
+
+  // 2. Fetch from Wikipedia for pool specimens (genus + epithet)
+  if (pool && pool.length > 0) {
+    const seen = new Set(entries.map((e) => e.word.toLowerCase()));
+    const fetches: Promise<void>[] = [];
+
+    for (const sp of pool) {
+      const parts = sp.latin.split(" ");
+      const genus = parts[0]?.toLowerCase();
+      const epithet = parts[1]?.toLowerCase();
+
+      if (genus && !seen.has(genus)) {
+        seen.add(genus);
+        fetches.push(
+          fetchWikipediaEtymology(genus).then((r) => {
+            if (r) entries.push({ word: genus, lang: r.lang, meaning: r.meaning, detail: r.detail, source: "wikipedia" });
+          }),
+        );
+      }
+      if (epithet && !seen.has(epithet)) {
+        seen.add(epithet);
+        fetches.push(
+          fetchWikipediaEtymology(epithet).then((r) => {
+            if (r) entries.push({ word: epithet, lang: r.lang, meaning: r.meaning, detail: r.detail, source: "wikipedia" });
+          }),
+        );
+      }
+    }
+    await Promise.allSettled(fetches);
+  }
+
+  // 3. Generate questions from merged pool
   const questions: QuizQuestion[] = [];
+  const allMeanings = entries.map((e) => e.meaning);
 
-  // Preguntas de género: "¿Qué significa 'Apis'?" → "abeja"
-  const genusKeys = Object.keys(GENERA);
-  for (const key of shuffle(genusKeys).slice(0, 5)) {
-    const gen = GENERA[key];
+  // Genus questions (5)
+  const generaOnly = entries.filter((e) => Object.keys(GENERA).includes(e.word) || e.source === "wikipedia");
+  for (const e of shuffle(generaOnly).slice(0, 5)) {
     const distractors = pickRandom(
-      genusKeys.filter((k) => GENERA[k].meaning !== gen.meaning),
-      3
-    ).map((k) => GENERA[k].meaning);
-
-    const correctMeaning = gen.meaning;
-    const options = shuffle([correctMeaning, ...distractors]);
-
+      allMeanings.filter((m) => m !== e.meaning),
+      3,
+    );
+    const options = shuffle([e.meaning, ...distractors]);
     questions.push({
-      question: `¿Qué significa "${key}" en latín/griego?`,
+      question: `¿Qué significa "${e.word}" en latín/griego?`,
       options,
-      correctIndex: options.indexOf(correctMeaning),
-      explanation: `"${key}" (${gen.lang}) significa "${gen.meaning}".${gen.detail ? " " + gen.detail : ""}`,
-      displayLabel: key,
+      correctIndex: options.indexOf(e.meaning),
+      explanation: `"${e.word}" (${e.lang}) significa "${e.meaning}".${e.detail ? " " + e.detail : ""}`,
+      displayLabel: e.word,
     });
   }
 
-  // Preguntas de epíteto
-  const epithetKeys = Object.keys(EPITHETS);
-  for (const key of shuffle(epithetKeys).slice(0, 5)) {
-    const ep = EPITHETS[key];
+  // Epithet questions (5)
+  const epithetsOnly = entries.filter((e) => Object.keys(EPITHETS).includes(e.word) || e.source === "wikipedia");
+  for (const e of shuffle(epithetsOnly).slice(0, 5)) {
     const distractors = pickRandom(
-      epithetKeys.filter((k) => EPITHETS[k].meaning !== ep.meaning),
-      3
-    ).map((k) => EPITHETS[k].meaning);
-
-    const correctMeaning = ep.meaning;
-    const options = shuffle([correctMeaning, ...distractors]);
-
+      allMeanings.filter((m) => m !== e.meaning),
+      3,
+    );
+    const options = shuffle([e.meaning, ...distractors]);
     questions.push({
-      question: `¿Qué significa "${key}" como epíteto específico?`,
+      question: `¿Qué significa "${e.word}" como epíteto específico?`,
       options,
-      correctIndex: options.indexOf(correctMeaning),
-      explanation: `"${key}" (${ep.lang}) significa "${ep.meaning}".${ep.detail ? " " + ep.detail : ""}`,
-      displayLabel: key,
+      correctIndex: options.indexOf(e.meaning),
+      explanation: `"${e.word}" (${e.lang}) significa "${e.meaning}".${e.detail ? " " + e.detail : ""}`,
+      displayLabel: e.word,
     });
   }
 
@@ -944,7 +985,7 @@ export async function generateQuestions(mode: QuizMode, pool?: QuizSpecimen[]): 
     case "identify-glyph":
       return generateIdentifyGlyph();
     case "etymology":
-      return generateEtymology();
+      return generateEtymology(pool);
     case "taxonomy-chain":
       return generateTaxonomyChain(pool);
     case "evolution":
