@@ -426,6 +426,29 @@ textarea {
   animation: streak-glow 1.2s ease-in-out infinite;
 }
 
+/* ---------- bottom sheet ---------- */
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.sheet-up {
+  animation: sheet-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* hide scrollbar but keep scroll */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .quiz-shake,
   .quiz-pulse-correct,
@@ -444,7 +467,8 @@ textarea {
     animation-duration: 0.01s;
   }
   .drawer-in,
-  .overlay-in {
+  .overlay-in,
+  .sheet-up {
     animation: none !important;
   }
   html {

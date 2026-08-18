@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CardTaxon, TaxonDetail, WikiSummary } from "../lib/inat";
 import { EXTERNAL, fetchTaxonDetail, fetchWikiSummary, fmtFull, glyphForOrder, licenseLabel } from "../lib/inat";
 import { IUCN_CATS, IUCN_META, fetchIucn, type IucnResult } from "../lib/inatLive";
@@ -44,6 +44,16 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
   const [state, setState] = useState<LoadState>("loading");
   const [mainPhoto, setMainPhoto] = useState(0);
   const [activeTab, setActiveTab] = useState<TabKey>("info");
+  const tabRefs = useRef<Map<TabKey, HTMLButtonElement>>(new Map());
+
+  const scrollToTab = (key: TabKey) => {
+    tabRefs.current.get(key)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  };
+
+  const handleTab = (key: TabKey) => {
+    setActiveTab(key);
+    scrollToTab(key);
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -64,6 +74,7 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
     setMainPhoto(0);
     setState("loading");
     setActiveTab("info");
+    setTimeout(() => scrollToTab("info"), 50);
 
     (async () => {
       try {
@@ -112,34 +123,55 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
 
   return (
     <div
-      className="fade-in fixed inset-0 z-[80] flex items-end justify-center bg-ink/85 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+      className="fade-in fixed inset-0 z-[80] flex items-end justify-center bg-ink/85 p-0 sm:items-center sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`Ficha de ${taxon.latin}`}
     >
       <div
-        className="modal-in label-frame relative flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden bg-pine shadow-[0_40px_120px_rgba(0,0,0,0.6)]"
+        className="sheet-up label-frame relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-t-xl bg-pine shadow-[0_40px_120px_rgba(0,0,0,0.6)] sm:max-h-[92vh] sm:rounded-none sm:modal-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* cabecera */}
-        <div className="flex shrink-0 items-center justify-between border-b border-moss/70 px-6 py-3">
-          <p className="font-body text-[11px] tracking-[0.28em] text-sage/80 uppercase">
-            {taxon.curated ? "Cajón local · espécimen curado" : `Ficha en vivo · iNaturalist n.º ${taxon.id.replace("inat:", "")}`}
-          </p>
-          <button
-            onClick={onClose}
-            className="flex h-9 w-9 shrink-0 items-center justify-center border border-moss text-bone/70 transition-colors hover:border-rust hover:text-rust"
-            aria-label="Cerrar ficha"
-          >
-            <svg viewBox="0 0 16 16" className="h-4 w-4" stroke="currentColor" strokeWidth="1.6">
-              <path d="M3 3l10 10M13 3 3 13" />
-            </svg>
-          </button>
+        <div className="flex shrink-0 flex-col border-b border-moss/70">
+          {/*desktop header */}
+          <div className="hidden items-center justify-between px-6 py-3 sm:flex">
+            <p className="font-body text-[11px] tracking-[0.28em] text-sage/80 uppercase">
+              {taxon.curated ? "Cajón local · espécimen curado" : `Ficha en vivo · iNaturalist n.º ${taxon.id.replace("inat:", "")}`}
+            </p>
+            <button
+              onClick={onClose}
+              className="flex h-9 w-9 shrink-0 items-center justify-center border border-moss text-bone/70 transition-colors hover:border-rust hover:text-rust"
+              aria-label="Cerrar ficha"
+            >
+              <svg viewBox="0 0 16 16" className="h-4 w-4" stroke="currentColor" strokeWidth="1.6">
+                <path d="M3 3l10 10M13 3 3 13" />
+              </svg>
+            </button>
+          </div>
+
+          {/* mobile header: grid con status + botones + close */}
+          <div className="flex items-center justify-between px-4 py-3 sm:hidden">
+            <p className="min-w-0 flex-1 truncate font-body text-[10px] tracking-[0.22em] text-sage/70 uppercase">
+              {taxon.curated ? "Cajón local · curado" : `iNaturalist n.º ${taxon.id.replace("inat:", "")}`}
+            </p>
+            <button
+              onClick={onClose}
+              className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center border border-moss text-bone/70 transition-colors hover:border-rust hover:text-rust"
+              aria-label="Cerrar ficha"
+            >
+              <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="1.6">
+                <path d="M3 3l10 10M13 3 3 13" />
+              </svg>
+            </button>
+          </div>
+
+
         </div>
 
         {/* contenido scrolleable */}
-        <div className="grid min-h-0 flex-1 gap-8 overflow-y-auto overflow-x-hidden p-6 sm:p-8 lg:grid-cols-[340px_1fr]">
+        <div className="grid min-h-0 flex-1 gap-6 overflow-y-auto overflow-x-hidden no-scrollbar p-4 sm:gap-8 sm:p-8 lg:grid-cols-[340px_1fr]">
           {/* -------- vitrina fotográfica -------- */}
           <div>
             <div className="relative aspect-[4/3] overflow-hidden border border-moss bg-fern/50">
@@ -204,7 +236,7 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
           </div>
 
           {/* -------- columna derecha -------- */}
-          <div className="flex min-h-0 flex-col">
+          <div className="flex min-h-0 min-w-0 flex-col">
             {/* badges + título */}
             <div className="flex shrink-0 flex-wrap items-center gap-2">
               <span className="border border-moss px-2 py-0.5 text-[11px] tracking-[0.18em] text-sage uppercase">
@@ -215,39 +247,42 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
               </span>
             </div>
 
-            <h3 className="mt-3 font-display text-4xl leading-none font-black text-parch italic sm:text-5xl">
+            <h3 className="mt-3 font-display text-3xl leading-none font-black text-parch italic sm:text-4xl lg:text-5xl">
               {taxon.latin}
             </h3>
             {taxon.common && (
-              <p className="mt-2 text-lg text-bone/80">
+              <p className="mt-2 text-base text-bone/80 sm:text-lg">
                 {taxon.common}
                 <span className="ml-2 text-sm text-bone/45">— nombre vulgar</span>
               </p>
             )}
 
-            {/* tabs */}
-            <div className="mt-6 flex shrink-0 gap-1 border-b border-moss/70">
-              {TABS.map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => setActiveTab(t.key)}
-                  className={`border-b-2 px-4 py-2 text-[11px] font-bold tracking-[0.16em] uppercase transition-colors ${
-                    activeTab === t.key
-                      ? "border-amber text-amber"
-                      : "border-transparent text-bone/50 hover:text-bone/80"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
+            {/* tabs: scroll horizontal en móvil */}
+            <div className="no-scrollbar mt-5 w-full shrink-0 overflow-x-auto sm:mt-6 sm:overflow-visible">
+              <div className="flex w-max gap-1 border-b border-transparent sm:border-b sm:border-moss/70 sm:w-auto">
+                {TABS.map((t) => (
+                  <button
+                    key={t.key}
+                    ref={(el) => { if (el) tabRefs.current.set(t.key, el); }}
+                    onClick={() => handleTab(t.key)}
+                    className={`whitespace-nowrap border-b-2 px-3 py-2 text-[11px] font-bold tracking-[0.16em] uppercase transition-colors sm:px-4 ${
+                      activeTab === t.key
+                        ? "border-amber bg-amber/15 text-amber sm:bg-transparent"
+                        : "border-transparent text-bone/50 hover:text-bone/80"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* contenido del tab activo */}
-            <div className="min-h-0 flex-1 py-5">
+            <div className="min-h-0 flex-1 py-4 sm:py-5">
               {activeTab === "info" && (
                 <>
                   {lineage.length > 0 && (
-                    <div className="border border-moss/70 bg-ink/40 p-4">
+                    <div className="border border-moss/70 bg-ink/40 p-3 sm:p-4">
                       <p className="mb-2.5 text-[11px] tracking-[0.24em] text-sage/70 uppercase">
                         Clasificación (linaje completo)
                       </p>
@@ -280,11 +315,11 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
               )}
 
               {activeTab === "etno" && (
-                <div className="space-y-5">
-                  <div className="border border-moss/70 bg-ink/40 p-4">
+                <div className="space-y-4 sm:space-y-5">
+                  <div className="border border-moss/70 bg-ink/40 p-3 sm:p-4">
                     <EtymologyPanel latin={taxon.latin} />
                   </div>
-                  <div className="border border-moss/70 bg-ink/40 p-4">
+                  <div className="border border-moss/70 bg-ink/40 p-3 sm:p-4">
                     <p className="mb-3 text-[11px] tracking-[0.24em] text-sage/70 uppercase">
                       Conservación · Lista Roja IUCN vía GBIF
                     </p>
@@ -377,7 +412,7 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
               )}
 
               {activeTab === "biblio" && (
-                <div className="border border-moss/70 bg-ink/40 p-4">
+                <div className="border border-moss/70 bg-ink/40 p-3 sm:p-4">
                   <ReferencesPanel query={refQuery} latin={taxon.latin} />
                 </div>
               )}
@@ -386,27 +421,33 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
         </div>
 
         {/* footer sticky */}
-        <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-moss/70 bg-pine/95 px-6 py-3 backdrop-blur-sm">
-          <div className="flex flex-1 flex-wrap gap-2">
+        <div className="flex shrink-0 flex-col border-t border-moss/70 bg-pine/95 backdrop-blur-sm">
+          {/* fila 1: links externos en 4 columnas iguales */}
+          <div className="grid grid-cols-4 gap-1.5 px-4 py-2.5 sm:gap-2 sm:px-6 sm:py-3">
             {externalLinks.map((l) => (
               <a
                 key={l.label}
                 href={l.href}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1.5 border border-moss px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] text-sage uppercase transition-all hover:border-amber/70 hover:bg-amber/10 hover:text-amber"
+                className="flex items-center justify-center gap-1 border border-moss px-2 py-1.5 text-[9px] font-bold tracking-[0.14em] text-sage uppercase transition-all hover:border-amber/70 hover:bg-amber/10 hover:text-amber sm:text-[11px]"
               >
                 {l.label}
-                <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <svg viewBox="0 0 16 16" className="h-2.5 w-2.5 sm:h-3 sm:w-3" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <path d="M4 12 12 4M6 4h6v6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </a>
             ))}
           </div>
-          <div className="flex gap-2">
+
+          {/* separador */}
+          <div className="mx-4 border-t border-moss/50 sm:mx-6" />
+
+          {/* fila 2: botones de acción en 2 columnas iguales */}
+          <div className="grid grid-cols-2 gap-2 px-4 py-2.5 sm:px-6 sm:py-3">
             <button
               onClick={() => onToggleWish(taxon)}
-              className={`shrink-0 border px-4 py-2 text-[11px] font-bold tracking-[0.18em] uppercase transition-all ${
+              className={`flex items-center justify-center border px-3 py-2 text-[10px] font-bold tracking-[0.18em] uppercase transition-all sm:text-[11px] ${
                 wished
                   ? "border-rust bg-rust/10 text-rust hover:bg-rust/20"
                   : "border-moss text-sage hover:border-rust/60 hover:text-rust"
@@ -416,7 +457,7 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
             </button>
             <button
               onClick={() => onToggleCollect(taxon)}
-              className={`shrink-0 border px-5 py-2 text-[11px] font-bold tracking-[0.18em] uppercase transition-all ${
+              className={`flex items-center justify-center border px-3 py-2 text-[10px] font-bold tracking-[0.18em] uppercase transition-all sm:text-[11px] ${
                 collected
                   ? "border-amber bg-amber text-ink hover:bg-honey"
                   : "border-amber/70 text-amber hover:bg-amber/10"
