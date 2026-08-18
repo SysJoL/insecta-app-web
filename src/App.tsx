@@ -18,7 +18,7 @@ import DichotomousKey from "./components/DichotomousKey";
 import Observatory from "./components/Observatory";
 import SpeciesCompare from "./components/SpeciesCompare";
 import TaxonomyTree from "./components/TaxonomyTree";
-import AnatomyDiagram from "./components/AnatomyDiagram";
+import OrderAnatomy from "./components/OrderAnatomy";
 import ScaleTool from "./components/ScaleTool";
 import ExportPanel from "./components/ExportPanel";
 import Header from "./components/Header";
@@ -1167,7 +1167,7 @@ export default function App() {
                 </span>
                 Anatomía dorsal interactiva
               </h3>
-              <AnatomyDiagram />
+              <OrderAnatomy />
             </Reveal>
 
             <Reveal className="border-t border-moss/50 py-10">
