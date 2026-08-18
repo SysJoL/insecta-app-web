@@ -66,13 +66,60 @@ export function OrderGlyph({ k, className = "" }: Props) {
       )}
       {k === "bee" && (
         <g>
-          <ellipse cx="17" cy="18" rx="10" ry="4.5" transform="rotate(-28 17 18)" />
-          <ellipse cx="47" cy="18" rx="10" ry="4.5" transform="rotate(28 47 18)" />
-          <circle cx="32" cy="10" r="4" />
-          <ellipse cx="32" cy="20" rx="7" ry="5.5" />
-          <path d="M32 26c-7 0-9 6-9 13 0 8 4 13 9 13s9-5 9-13c0-7-2-13-9-13Z" />
-          <path d="M24 33q8 3 16 0M23.5 39q8.5 3 17 0M25 45q7 3 14 0" strokeWidth={1.5} />
-          <path d="M32 52v5M27 44l-6 6M37 44l6 6" />
+          <path d="M28 8C24 4 20 2 18 4" />
+          <path d="M18 4L14 6" />
+          <path d="M36 8C40 4 44 2 46 4" />
+          <path d="M46 4L50 6" />
+          <ellipse cx="32" cy="10" rx="6" ry="5" />
+          <ellipse cx="28" cy="9" rx="2.5" ry="3.5" fill="currentColor" stroke="none" />
+          <ellipse cx="36" cy="9" rx="2.5" ry="3.5" fill="currentColor" stroke="none" />
+          <path d="M30 13L28 15L30 17" />
+          <path d="M34 13L36 15L34 17" />
+          <ellipse cx="32" cy="17" rx="7" ry="5" />
+          <ellipse cx="32" cy="22" rx="5" ry="2.5" />
+          <path d="M28 24C24 28 22 34 24 42 26 48 28 50 32 52 36 50 38 48 40 42 42 34 40 28 36 24" />
+          <path d="M27 28L37 28" />
+          <path d="M26 32L38 32" />
+          <path d="M25 36L39 36" />
+          <path d="M26 40L38 40" />
+          <path d="M27 44L37 44" />
+          <path d="M29 48L35 48" />
+          <path d="M32 52L32 56" strokeWidth={1.5} />
+          <path d="M28 16C18 10 8 12 6 20 4 28 10 32 16 30 22 28 26 22 28 16" />
+          <path d="M22 14C16 14 12 18 12 22" />
+          <path d="M20 18C16 18 14 22 16 26" />
+          <path d="M24 16C20 18 18 22 20 26" />
+          <ellipse cx="14" cy="20" rx="2" ry="1.5" fill="currentColor" stroke="none" />
+          <path d="M30 18C24 14 16 16 14 22 12 28 16 30 20 28 24 26 28 22 30 18" />
+          <path d="M22 18C18 20 18 24 20 26" />
+          <path d="M36 16C46 10 56 12 58 20 60 28 54 32 48 30 42 28 38 22 36 16" />
+          <path d="M42 14C48 14 52 18 52 22" />
+          <path d="M44 18C48 18 50 22 48 26" />
+          <path d="M40 16C44 18 46 22 44 26" />
+          <ellipse cx="50" cy="20" rx="2" ry="1.5" fill="currentColor" stroke="none" />
+          <path d="M34 18C40 14 48 16 50 22 52 28 48 30 44 28 40 26 36 22 34 18" />
+          <path d="M42 18C46 20 46 24 44 26" />
+          <path d="M28 15L20 12L16 10" />
+          <path d="M16 10L14 8" />
+          <path d="M27 18L18 20L14 18" />
+          <path d="M14 18L12 16" />
+          <path d="M28 22L18 28L14 30" strokeWidth={2} />
+          <ellipse cx="16" cy="29" rx="2.5" ry="3" />
+          <path d="M14 30L12 34" />
+          <path d="M12 34L10 36M12 34L14 36" />
+          <path d="M36 15L44 12L48 10" />
+          <path d="M48 10L50 8" />
+          <path d="M37 18L46 20L50 18" />
+          <path d="M50 18L52 16" />
+          <path d="M36 22L46 28L50 30" strokeWidth={2} />
+          <ellipse cx="48" cy="29" rx="2.5" ry="3" />
+          <path d="M50 30L52 34" />
+          <path d="M52 34L54 36M52 34L50 36" />
+          <circle cx="30" cy="16" r="0.8" fill="currentColor" stroke="none" />
+          <circle cx="34" cy="16" r="0.8" fill="currentColor" stroke="none" />
+          <circle cx="32" cy="18" r="0.8" fill="currentColor" stroke="none" />
+          <circle cx="29" cy="19" r="0.8" fill="currentColor" stroke="none" />
+          <circle cx="35" cy="19" r="0.8" fill="currentColor" stroke="none" />
         </g>
       )}
       {k === "dragonfly" && (

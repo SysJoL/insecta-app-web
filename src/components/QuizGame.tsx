@@ -678,9 +678,25 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
                   )}
                   {q.glyphKey === "bee" && (
                     <g>
-                      <circle cx="32" cy="10" r="4" />
-                      <path d="M32 26c-7 0-9 6-9 13 0 8 4 13 9 13s9-5 9-13c0-7-2-13-9-13Z" />
-                      <path d="M24 33q8 3 16 0M23.5 39q8.5 3 17 0" strokeWidth={1.5} />
+                      <path d="M28 8C24 4 20 2 18 4" />
+                      <path d="M36 8C40 4 44 2 46 4" />
+                      <ellipse cx="32" cy="10" rx="6" ry="5" />
+                      <ellipse cx="28" cy="9" rx="2.5" ry="3.5" fill="currentColor" stroke="none" />
+                      <ellipse cx="36" cy="9" rx="2.5" ry="3.5" fill="currentColor" stroke="none" />
+                      <ellipse cx="32" cy="17" rx="7" ry="5" />
+                      <path d="M28 24C24 28 22 34 24 42 26 48 28 50 32 52 36 50 38 48 40 42 42 34 40 28 36 24" />
+                      <path d="M27 28L37 28" />
+                      <path d="M26 32L38 32" />
+                      <path d="M25 36L39 36" />
+                      <path d="M32 52L32 56" strokeWidth={1.5} />
+                      <path d="M28 16C18 10 8 12 6 20 4 28 10 32 16 30 22 28 26 22 28 16" />
+                      <path d="M36 16C46 10 56 12 58 20 60 28 54 32 48 30 42 28 38 22 36 16" />
+                      <ellipse cx="14" cy="20" rx="2" ry="1.5" fill="currentColor" stroke="none" />
+                      <ellipse cx="50" cy="20" rx="2" ry="1.5" fill="currentColor" stroke="none" />
+                      <path d="M28 22L18 28L14 30" strokeWidth={2} />
+                      <path d="M36 22L46 28L50 30" strokeWidth={2} />
+                      <ellipse cx="16" cy="29" rx="2.5" ry="3" />
+                      <ellipse cx="48" cy="29" rx="2.5" ry="3" />
                     </g>
                   )}
                   {q.glyphKey === "mantis" && (
