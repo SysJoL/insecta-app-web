@@ -57,21 +57,20 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
 
   const heroImgRef = useRef<HTMLImageElement>(null);
 
-  const downloadImage = (name: string) => {
-    const img = heroImgRef.current;
-    if (!img) return;
-    const canvas = document.createElement("canvas");
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    canvas.getContext("2d")?.drawImage(img, 0, 0);
-    canvas.toBlob((blob) => {
-      if (!blob) return;
+  const downloadImage = async (url: string, name: string) => {
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      const blob = await res.blob();
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `${name.replace(/\s+/g, "_")}.jpg`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
-    }, "image/jpeg", 0.95);
+    } catch {
+      window.open(url, "_blank");
+    }
   };
 
   useEffect(() => {
@@ -199,6 +198,7 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
               ) : heroSrc ? (
                 <img
                   ref={heroImgRef}
+                  crossOrigin="anonymous"
                   src={heroSrc}
                   alt={`Fotografía de ${taxon.latin}`}
                   onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
@@ -214,7 +214,7 @@ export default function TaxonModal({ taxon, collected, wished, onClose, onToggle
               </span>
               {heroSrc && (
                 <button
-                  onClick={() => downloadImage(taxon.latin)}
+                  onClick={() => heroSrc && downloadImage(heroSrc, taxon.latin)}
                   className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center border border-bone/25 bg-ink/70 text-bone backdrop-blur-sm transition-colors hover:border-amber hover:text-amber"
                   aria-label="Descargar imagen"
                 >
