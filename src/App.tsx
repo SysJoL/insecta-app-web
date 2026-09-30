@@ -7,7 +7,6 @@ import {
   searchSpecies,
   type CardTaxon,
   type OrderInfo,
-  type PhotoFilter,
 } from "./lib/inat";
 import { OrderGlyph, PinMark } from "./components/glyphs";
 import { Reveal } from "./components/Reveal";
@@ -26,11 +25,9 @@ import MobileDrawer from "./components/MobileDrawer";
 import Footer from "./components/Footer";
 import ScrollProgress from "./components/ScrollProgress";
 import StatBlock from "./components/StatBlock";
-import FilterSheet from "./components/FilterSheet";
 import Quiz from "./components/Quiz";
 import Museum from "./components/Museum";
 import { loadProfile, saveProfile, type PlayerProfile, DEFAULT_PROFILE } from "./lib/quizEngine";
-import { SlidersHorizontal } from "lucide-react";
 
 /* ---------------- persistencia ---------------- */
 
@@ -79,9 +76,9 @@ const CURATED_CARDS: CardTaxon[] = SPECIMENS.map((s) => ({
 }));
 
 const LAB_TABS = [
-  { id: "obs", n: "01", label: "Observatorio en vivo" },
-  { id: "cmp", n: "02", label: "Comparador" },
-  { id: "tree", n: "03", label: "Árbol taxonómico" },
+  { id: "obs", n: "01", label: "Observatorio en vivo", desc: "Mapa · fenología · especies cercanas" },
+  { id: "cmp", n: "02", label: "Comparador", desc: "Dos taxones frente a frente" },
+  { id: "tree", n: "03", label: "Árbol taxonómico", desc: "Orden → familia → género → especie" },
 ] as const;
 
 type LabTool = (typeof LAB_TABS)[number]["id"];
@@ -131,9 +128,6 @@ export default function App() {
   const [activeOrder, setActiveOrder] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("obs");
-  const [photoFilter, setPhotoFilter] = useState<PhotoFilter>("with");
-
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   const [active, setActive] = useState<CardTaxon | null>(null);
   const [collection, setCollection] = useState<Record<string, SavedSpecimen>>(() =>
@@ -182,7 +176,6 @@ export default function App() {
 
   const reqId = useRef(0);
 
-  const photoFilterRef = useRef<PhotoFilter>("with");
   const sortKeyRef = useRef<SortKey>("obs");
 
   const refresh = useCallback(
@@ -192,8 +185,8 @@ export default function App() {
       setLocalMode(false);
       try {
         const data = q.trim()
-          ? await searchSpecies(q, orderMapRef.current, photoFilterRef.current)
-          : await fetchTopSpecies(orderMapRef.current, orderId, photoFilterRef.current);
+          ? await searchSpecies(q, orderMapRef.current, "with")
+          : await fetchTopSpecies(orderMapRef.current, orderId, "with");
         if (my !== reqId.current) return;
         setCards(data);
         setApiStatus("online");
@@ -243,12 +236,6 @@ export default function App() {
     setActiveOrder(id);
     setQuery("");
     refresh(id, "");
-  };
-
-  const handlePhotoFilter = (f: PhotoFilter) => {
-    setPhotoFilter(f);
-    photoFilterRef.current = f;
-    refresh(activeOrder, query);
   };
 
   const handleLocalMode = () => {
@@ -726,9 +713,9 @@ export default function App() {
 
           {/* barra de trabajo */}
           <Reveal delay={80} className="label-frame mb-8 bg-pine/70 p-4">
-            {/* mobile: search + filter button */}
-            <div className="flex gap-2 sm:hidden">
-              <label className="relative flex-1">
+            {/* mobile: search */}
+            <div className="sm:hidden">
+              <label className="relative block">
                 <svg viewBox="0 0 16 16" className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sage" fill="none" stroke="currentColor" strokeWidth="1.6">
                   <circle cx="7" cy="7" r="4.5" />
                   <path d="M10.5 10.5 14 14" strokeLinecap="round" />
@@ -741,17 +728,10 @@ export default function App() {
                   aria-label="Buscar especies en iNaturalist"
                 />
               </label>
-              <button
-                onClick={() => setFilterSheetOpen(true)}
-                className="flex shrink-0 items-center gap-1.5 border border-moss bg-ink/80 px-3 text-sage transition-colors hover:border-amber/60 hover:text-amber"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                <span className="text-[10px] font-bold tracking-[0.12em] uppercase">Filtros</span>
-              </button>
             </div>
 
             {/* desktop: full grid */}
-            <div className="hidden grid-cols-[1fr_auto_1fr] items-center gap-3 sm:grid">
+            <div className="hidden grid-cols-[1fr_auto] items-center gap-3 sm:grid">
               <label className="relative w-full">
                 <svg viewBox="0 0 16 16" className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-sage" fill="none" stroke="currentColor" strokeWidth="1.6">
                   <circle cx="7" cy="7" r="4.5" />
@@ -765,23 +745,6 @@ export default function App() {
                   aria-label="Buscar especies en iNaturalist"
                 />
               </label>
-
-              {/* photo filter segmented */}
-              <div className="flex border border-moss">
-                {(["with", "all", "without"] as const).map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => handlePhotoFilter(v)}
-                    className={`px-3 py-2 text-[10px] font-semibold tracking-[0.12em] uppercase transition-all ${
-                      photoFilter === v
-                        ? "bg-amber text-ink"
-                        : "text-sage hover:text-amber"
-                    }`}
-                  >
-                    {v === "with" ? "Con foto" : v === "without" ? "Sin foto" : "Todas"}
-                  </button>
-                ))}
-              </div>
 
               <div className="flex items-center gap-3 justify-end">
                 <label className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.16em] text-sage uppercase">
@@ -823,13 +786,13 @@ export default function App() {
             </div>
 
             {/* separador */}
-            <div className="mt-3 border-t border-moss/50 hidden sm:block" />
+            <div className="mt-3 border-t border-moss/50" />
 
-            {/* chips de órdenes — solo desktop */}
-            <div className="mt-3 hidden grid-cols-4 gap-1.5 sm:grid md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-9">
+            {/* chips de órdenes — scroll horizontal en móvil, rejilla en desktop */}
+            <div className="no-scrollbar mt-3 flex gap-1.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible sm:pb-0 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-9">
               <button
                 onClick={() => handleOrder(null)}
-                className={`border px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase transition-all ${
+                className={`shrink-0 border px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-all ${
                   activeOrder === null && !query
                     ? "border-amber bg-amber text-ink"
                     : "border-moss text-sage hover:border-amber/50 hover:text-amber"
@@ -843,7 +806,7 @@ export default function App() {
                   <button
                     key={o.id}
                     onClick={() => handleOrder(o.id)}
-                    className={`border px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] uppercase transition-all ${
+                    className={`shrink-0 border px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] whitespace-nowrap uppercase transition-all ${
                       isActive
                         ? "border-amber bg-amber text-ink"
                         : "border-moss text-sage hover:border-amber/50 hover:text-amber"
@@ -1107,27 +1070,83 @@ export default function App() {
               </p>
             </Reveal>
 
-            <Reveal delay={80} className="mb-6 flex flex-wrap gap-1.5">
-              {LAB_TABS.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setLabTool(t.id)}
-                  className={`flex items-center gap-2.5 border px-4 py-2.5 text-[11px] font-bold tracking-[0.18em] uppercase transition-all ${
-                    labTool === t.id
-                      ? "border-amber bg-amber text-ink shadow-[0_8px_26px_rgba(229,168,59,0.22)]"
-                      : "border-moss text-sage hover:border-amber/50 hover:text-amber"
-                  }`}
-                >
-                  <span className={labTool === t.id ? "opacity-60" : "text-amber/70"}>{t.n}</span>
-                  {t.label}
-                </button>
-              ))}
-            </Reveal>
+            <Reveal delay={80} className="label-frame bg-pine/70">
+              {/* marco: pestañas del instrumento */}
+              <div className="flex items-center justify-between gap-3 border-b border-moss/50 px-4 pt-3 sm:px-5">
+                <p className="pb-3 text-[10px] font-bold tracking-[0.24em] text-sage/70 uppercase">
+                  Mesa · 03 instrumentos
+                </p>
+                <p className="hidden pb-3 text-[10px] tracking-[0.14em] text-bone/40 uppercase sm:block">
+                  {LAB_TABS.find((t) => t.id === labTool)?.desc}
+                </p>
+              </div>
+              <div
+                role="tablist"
+                aria-label="Instrumentos de ciencia en vivo"
+                className="grid grid-cols-1 divide-y divide-moss/50 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+              >
+                {LAB_TABS.map((t) => {
+                  const isActive = labTool === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      role="tab"
+                      aria-selected={isActive}
+                      onClick={() => setLabTool(t.id)}
+                      className={`group relative flex items-center gap-3 border-l-2 px-4 py-3.5 text-left transition-all sm:px-5 ${
+                        isActive
+                          ? "border-l-amber bg-amber/10"
+                          : "border-l-moss hover:border-l-amber/60 hover:bg-amber/5"
+                      }`}
+                    >
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center border font-display text-xs ${
+                          isActive
+                            ? "border-amber bg-amber font-black text-ink"
+                            : "border-moss text-sage group-hover:border-amber/50 group-hover:text-amber"
+                        }`}
+                      >
+                        {t.n}
+                      </span>
+                      <span className="min-w-0">
+                        <span
+                          className={`block text-[11px] font-bold tracking-[0.16em] uppercase ${
+                            isActive ? "text-amber" : "text-bone/75 group-hover:text-parch"
+                          }`}
+                        >
+                          {t.label}
+                        </span>
+                        <span className="mt-0.5 block truncate text-[11px] text-bone/45 sm:hidden">
+                          {t.desc}
+                        </span>
+                      </span>
+                      {/* indicador activo */}
+                      <span
+                        aria-hidden
+                        className={`absolute right-3 h-1.5 w-1.5 transition-all ${
+                          isActive ? "bg-amber" : "bg-moss/60 group-hover:bg-amber/40"
+                        }`}
+                      />
+                      {/* conector con el panel */}
+                      <span
+                        aria-hidden
+                        className={`absolute inset-x-0 -bottom-px h-0.5 transition-all ${
+                          isActive ? "bg-amber" : "bg-transparent"
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
 
-            <Reveal delay={120}>
-              {labTool === "obs" && <Observatory species={cards} onOpen={setActive} orderMap={orderMapRef.current} />}
-              {labTool === "cmp" && <SpeciesCompare species={cards} orderMap={orderMapRef.current} />}
-              {labTool === "tree" && <TaxonomyTree orders={orders} onOpen={setActive} />}
+              {/* marco: panel del instrumento activo */}
+              <div className="border-t border-moss/50 bg-ink/40 p-4 sm:p-5">
+                <Reveal delay={120}>
+                  {labTool === "obs" && <Observatory species={cards} onOpen={setActive} orderMap={orderMapRef.current} />}
+                  {labTool === "cmp" && <SpeciesCompare species={cards} orderMap={orderMapRef.current} />}
+                  {labTool === "tree" && <TaxonomyTree orders={orders} onOpen={setActive} />}
+                </Reveal>
+              </div>
             </Reveal>
           </div>
         </section>
@@ -1402,22 +1421,6 @@ export default function App() {
       </div>
 
       {/* ---------- modal ---------- */}
-      <FilterSheet
-        open={filterSheetOpen}
-        onClose={() => setFilterSheetOpen(false)}
-        sortKey={sortKey}
-        onSortKey={setSortKey}
-        photoFilter={photoFilter}
-        onPhotoFilter={handlePhotoFilter}
-        onRefresh={() => refresh(activeOrder, query)}
-        onOrder={handleOrder}
-        loading={loading}
-        lastUpdate={lastUpdate}
-        orders={orders}
-        activeOrder={activeOrder}
-        query={query}
-      />
-
       <TaxonModal
         taxon={active}
         collected={active ? Boolean(collection[active.id]) : false}

@@ -1045,15 +1045,6 @@ export default function QuizGame({ mode, profile, onProfileUpdate, onHub }: Prop
             </div>
           )}
 
-          {/* Ecosystem label badge */}
-          {q.ecosystemLabel && (
-            <div className="mb-4 flex justify-center">
-              <span className="border border-teal/40 bg-teal/10 px-3 py-1 text-[10px] font-bold tracking-[0.14em] text-teal uppercase">
-                {q.ecosystemLabel}
-              </span>
-            </div>
-          )}
-
           {/* Question text */}
           {q.chainItems ? (
             <div className="mb-8 text-center">

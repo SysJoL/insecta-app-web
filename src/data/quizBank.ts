@@ -1,6 +1,5 @@
 import { SPECIMENS } from "./insects";
 import { GENERA, EPITHETS } from "./academic";
-import { ECO_QUESTIONS, type EcoRelation } from "./ecosystemQuestions";
 import { TAXONOMY_CHAINS, type TaxonomyChain } from "./taxonomyChains";
 import { fetchTaxonDetail, fetchWikipediaEtymology } from "../lib/inat";
 import type { GlyphKey } from "./insects";
@@ -37,11 +36,9 @@ export function specimensToQuizSpecimens(): QuizSpecimen[] {
 export type QuizMode =
   | "speed-scientific"
   | "classify-order"
-  | "identify-glyph"
   | "etymology"
   | "taxonomy-chain"
   | "evolution"
-  | "ecosystem"
   | "cryptid"
   | "daily"
   | "expedition";
@@ -63,8 +60,6 @@ export interface QuizQuestion {
   specimenId?: string;
   /** Para modo criptida: pistas progresivas que se revelan */
   hints?: string[];
-  /** Para modo ecosistema: subtítulo de la relación trófica */
-  ecosystemLabel?: string;
   /** URL de imagen real del espécimen (iNaturalist) */
   image?: string;
   /** Nombre científico para buscar foto precisa en iNaturalist */
@@ -104,14 +99,6 @@ export const QUIZ_MODES: QuizModeInfo[] = [
     color: "sage",
   },
   {
-    id: "identify-glyph",
-    name: "¿Qué Orden Es?",
-    shortName: "Glyphs",
-    icon: "🔬",
-    description: "Reconoce el orden a partir de su lámina xilográfica: ¿cuál es este insecto?",
-    color: "teal",
-  },
-  {
     id: "etymology",
     name: "Etimología Viva",
     shortName: "Etimología",
@@ -134,14 +121,6 @@ export const QUIZ_MODES: QuizModeInfo[] = [
     icon: "🦎",
     description: "Elige la adaptación correcta para sobrevivir en un entorno específico. Evolución en acción.",
     color: "sage",
-  },
-  {
-    id: "ecosystem",
-    name: "Red Trófica",
-    shortName: "Trófico",
-    icon: "🕸️",
-    description: "Identifica relaciones de depredación, polinización y parasitismo entre especies.",
-    color: "teal",
   },
   {
     id: "cryptid",
@@ -244,65 +223,6 @@ export function generateClassifyOrder(pool?: QuizSpecimen[]): QuizQuestion[] {
       latinName: s.latin,
       glyphKey: SPECIMENS.find((sp) => sp.latin === s.latin)?.orderKey,
       specimenId: s.id,
-    });
-  }
-
-  return shuffle(questions).slice(0, 10);
-}
-
-/**
- * MODO 3: ¿Qué Orden Es?
- * Muestra un glyph → elige el orden
- */
-export function generateIdentifyGlyph(): QuizQuestion[] {
-  const GLYPH_TO_ORDER: Partial<Record<GlyphKey, string>> = {
-    beetle: "Coleoptera",
-    stag: "Coleoptera",
-    firefly: "Coleoptera",
-    butterfly: "Lepidoptera",
-    bee: "Hymenoptera",
-    dragonfly: "Odonata",
-    mantis: "Mantodea",
-    grasshopper: "Orthoptera",
-    cicada: "Hemiptera",
-    leaf: "Phasmatodea",
-    fly: "Diptera",
-    bug: "Hemiptera",
-    lacewing: "Neuroptera",
-    earwig: "Dermaptera",
-    flea: "Siphonaptera",
-    mayfly: "Ephemeroptera",
-    cockroach: "Blattodea",
-    bristletail: "Archaeognatha",
-    webspinner: "Embioptera",
-    scorpionfly: "Mecoptera",
-    dobsonfly: "Megaloptera",
-    stonefly: "Plecoptera",
-    barklouse: "Psocodea",
-    snakefly: "Raphidioptera",
-    "twisted-wing": "Strepsiptera",
-    thrip: "Thysanoptera",
-    caddisfly: "Trichoptera",
-    "angel-insect": "Zoraptera",
-    silverfish: "Zygentoma",
-  };
-
-  const allGlyphs = Object.keys(GLYPH_TO_ORDER) as GlyphKey[];
-  const allOrders = [...new Set(Object.values(GLYPH_TO_ORDER))];
-
-  const questions: QuizQuestion[] = [];
-
-  for (const glyph of shuffle(allGlyphs)) {
-    const correctOrder = GLYPH_TO_ORDER[glyph]!;
-    const distractors = pickRandom(allOrders, 3, correctOrder);
-    const options = shuffle([correctOrder, ...distractors]);
-
-    questions.push({
-      question: "¿Qué orden representa esta lámina?",
-      options,
-      correctIndex: options.indexOf(correctOrder),
-      explanation: `La lámina corresponde al orden ${correctOrder}.`,
-      glyphKey: glyph,
     });
   }
 
@@ -660,156 +580,6 @@ export function generateEvolution(): QuizQuestion[] {
 }
 
 /**
- * MODO 7: Red Trófica
- * Pregunta sobre relaciones ecológicas: depredación, polinización, parasitismo
- */
-export function generateEcosystem(): QuizQuestion[] {
-  // 10 originales (hardcoded abajo) + 35 nuevas (ecosystemQuestions.ts) = 45 total
-  const ORIGINAL_RELATIONS: EcoRelation[] = [
-    {
-      question: "¿Qué captura la libélula emperador al vuelo con 95% de éxito?",
-      label: "Relación: Depredación",
-      correct: "Moscas y mosquitos — insectos voladores de pequeño tamaño",
-      distractors: [
-        "Polen de flores acuáticas — alimentación nectarívora",
-        "Hojas en descomposición del estanque — detritívora",
-        "Larvas de escarabajos bajo la corteza — excavación",
-      ],
-      explanation: "La libélula (Odonata, Aeshnidae) es un depredador aéreo de primer orden. Intercepta moscas, mosquitos y otros insectos voladores con visión estereoscópica y vuelo estacionario.",
-      specimenId: "anax-imperator",
-    },
-    {
-      question: "La mantis religiosa depende de este recurso para emboscarse exitosamente:",
-      label: "Relación: Camuflaje y depredación",
-      correct: "Vegetación densa y hojarasca — camuflaje entre tallos",
-      distractors: [
-        "Nidos de aves — parasitismo de crías",
-        "Troncos en descomposición — alimentación de madera",
-        "Flores con néctar profundo — polinización mutualista",
-      ],
-      explanation: "La mantis (Mantodea, Mantidae) necesita vegetación densa para camuflarse y emboscarse. Es un depredador ambusco que depende del entorno para no ser detectado por sus presas.",
-      specimenId: "mantis-religiosa",
-    },
-    {
-      question: "La abeja europea tiene una relación mutualista directa con:",
-      label: "Relación: Polinización mutualista",
-      correct: "Flores con néctar y polen — las abejas polinizan mientras se alimentan",
-      distractors: [
-        "Colmenas de avispas — competencia por presas",
-        "Troncos viejos — nidificación en cavidades",
-        "Larvas de escarabajos — parasitismo de provisiones",
-      ],
-      explanation: "La abeja (Hymenoptera, Apidae) es la polinizadora clave del planeta. Visita millones de flores al día, transportando polen mientras se alimenta de néctar — una relación mutualista perfecta.",
-      specimenId: "apis-mellifera",
-    },
-    {
-      question: "¿Quién es el principal depredador del ciervo volante en su hábitat?",
-      label: "Relación: Depredación",
-      correct: "Aves insectívoras y mamíferos — depredación generalista",
-      distractors: [
-        "Otras abejas sociales — competencia por recursos",
-        "Hongos entomopatógenos — parasitismo obligado",
-        "Bacterias del suelo — descomposición pasiva",
-      ],
-      explanation: "El ciervo volante (Coleoptera, Lucanidae) es depredado por aves y mamíferos. Su declive se debe a la pérdida de bosques viejos con madera muerta donde cría sus larvas.",
-      specimenId: "lucanus-cervus",
-    },
-    {
-      question: "¿Qué busca el avispón europeo cuando caza abejas para alimentar a sus larvas?",
-      label: "Relación: Depredación",
-      correct: "Proteínas de insectos vivos — presas de cuerpo blando",
-      distractors: [
-        "Néctar de flores silvestres — alimentación nectarívora",
-        "Madera en descomposición — material de construcción del nido",
-        "Hojas verdes — alimentación herbívora de larvas",
-      ],
-      explanation: "El avispón (Hymenoptera, Vespidae) caza abejas y otros insectos para alimentar a sus larvas. Las obreras mastican las presas para crear una pasta proteica que depositan en las celdas del nido.",
-      specimenId: "vespa-crabro",
-    },
-    {
-      question: "¿Cómo afecta la cigarra común a los árboles durante su fase subterránea?",
-      label: "Relación: Parasitismo de savia",
-      correct: "Chupa savia de las raíces — alimentación parasitaria durante años",
-      distractors: [
-        "Perfora el tronco para depositar huevos — oviposición destructiva",
-        "Devora las hojas en masa — defoliación estacional",
-        "Transmite bacterias entre árboles — vector de enfermedad",
-      ],
-      explanation: "La cigarra (Hemiptera, Cicadidae) se alimenta de savia de raíces durante 2-5 años como ninfa subterránea. Sus estiletes perforan el tejido vascular para extraer nutrientes, debilitando al árbol.",
-      specimenId: "cicada-orni",
-    },
-    {
-      question: "La morfo azul usa su coloración iridiscente principalmente para:",
-      label: "Relación: Señalización visual",
-      correct: "Confundir depredadores con destellos de vuelo errático",
-      distractors: [
-        "Atraer polinizadores con reflejos ultravioleta",
-        "Camuflarse entre flores azules del sotobosque",
-        "Marcar territorio con pigmentos urinarios",
-      ],
-      explanation: "La morfo (Lepidoptera, Nymphalidae) usa su azul estructural para confundir depredadores: los destellos erráticos durante el vuelo dificultan la persecución. El reverso críptico la oculta al posarse.",
-      specimenId: "morpho-menelaus",
-    },
-    {
-      question: "¿Qué estrategia usa la luciérnaga para atraer parejas sin atraer depredadores?",
-      label: "Relación: Señalización sexual",
-      correct: "Bioluminiscencia de frecuencia específica — código por especie",
-      distractors: [
-        "Feromonas volátiles — marcaje químico de largo alcance",
-        "Estridulación nocturna — canto de baja frecuencia",
-        "Mimetismo de flores — trampa visual pasiva",
-      ],
-      explanation: "La luciérnaga (Coleoptera, Lampyridae) usa destellos de frecuencia y duración específica para atraer parejas de la misma especie. La hembra áptera brilla desde el suelo mientras el macho vuela buscando la señal.",
-      specimenId: "lampyris-noctiluca",
-    },
-    {
-      question: "La almirante rojo migra desde Europa hasta África siguiendo este recurso:",
-      label: "Relación: Dependencia estacional",
-      correct: "Ortigas para oviposición — nurserías de orugas en primavera",
-      distractors: [
-        "Flores de lavanda — néctar de larga distancia",
-        "Frutos caídos del bosque — alimentación de otoño",
-        "Agua estancada — reproducción acuática",
-      ],
-      explanation: "La almirante (Lepidoptera, Nymphalidae) migra 3.000 km siguiendo la disponibilidad de ortigas (Urtica) para ovipositar. Las orugas se alimentan exclusivamente de ortigas, lo que determina su distribución.",
-      specimenId: "vanessa-atalanta",
-    },
-    {
-      question: "¿Qué relación tiene el insecto hoja con su entorno en las selvas de Filipinas?",
-      label: "Relación: Mimetismo críptico",
-      correct: "Se confunde con hojas vivas — depredadores lo ignoran como vegetación",
-      distractors: [
-        "Depende de hormigas para dispersión de huevos — mutualismo",
-        "Se alimenta de líquenes del tronco — saprofitismo",
-        "Vive en simbiosis con hongos — cultivo fungario",
-      ],
-      explanation: "El insecto hoja (Phasmatodea, Phylliidae) es la cúspide del mimetismo foliar: venación falsa, bordes roídos, manchas de moho y balanceo de viento. Los depredadores lo ven como una hoja más.",
-      specimenId: "phyllium-philippinicum",
-    },
-  ];
-
-  const ALL: EcoRelation[] = [...ORIGINAL_RELATIONS, ...ECO_QUESTIONS];
-
-  return shuffle(ALL).slice(0, 10).map((r) => {
-    const options = shuffle([r.correct, ...r.distractors]);
-    const latinParts = r.specimenId.split("-");
-    const latinName = latinParts.length >= 2
-      ? `${latinParts[0].charAt(0).toUpperCase() + latinParts[0].slice(1)} ${latinParts.slice(1).join(" ")}`
-      : r.specimenId;
-    return {
-      question: r.question,
-      options,
-      correctIndex: options.indexOf(r.correct),
-      explanation: r.explanation,
-      specimenId: r.specimenId,
-      displayLabel: latinName,
-      latinName,
-      ecosystemLabel: r.label,
-    };
-  });
-}
-
-/**
  * MODO 8: Cazador de Criptidas
  * Tres pistas críticas progresivas → identificar al espécimen
  */
@@ -1022,16 +792,12 @@ export async function generateQuestions(mode: QuizMode, pool?: QuizSpecimen[]): 
       return generateSpeedScientific(pool);
     case "classify-order":
       return generateClassifyOrder(pool);
-    case "identify-glyph":
-      return generateIdentifyGlyph();
     case "etymology":
       return generateEtymology(pool);
     case "taxonomy-chain":
       return generateTaxonomyChain(pool);
     case "evolution":
       return generateEvolution();
-    case "ecosystem":
-      return generateEcosystem();
     case "cryptid":
       return generateCryptid();
     case "daily":

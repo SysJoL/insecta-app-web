@@ -156,11 +156,9 @@ export const DEFAULT_PROFILE: PlayerProfile = {
   modeBest: {
     "speed-scientific": 0,
     "classify-order": 0,
-    "identify-glyph": 0,
     etymology: 0,
     "taxonomy-chain": 0,
     evolution: 0,
-    ecosystem: 0,
     cryptid: 0,
     daily: 0,
     expedition: 0,
@@ -238,11 +236,9 @@ export function getTimerDuration(mode: QuizMode, streak: number): number {
   const BASE: Record<QuizMode, number> = {
     "speed-scientific": 8000,
     "classify-order": 20000,
-    "identify-glyph": 10000,
     etymology: 12000,
     "taxonomy-chain": 15000,
     evolution: 12000,
-    ecosystem: 12000,
     cryptid: 18000,
     daily: 0, // no timer
     expedition: 10000,
